@@ -319,9 +319,8 @@ void Application::Render()
 			D3DXMATRIX view;
 			D3DXVECTOR3 targetPos(0.0f, 1.0f, 0.0f);		//应该根据world的位置来计算才对...
 			D3DXVECTOR3 eyeDir(cos(m_angle), 1.0f, sin(m_angle));
-			float distanceFromEye2Tar = 2.0;
-			D3DXVECTOR3 eyePos = targetPos + eyeDir * distanceFromEye2Tar;
-			D3DXMatrixLookAtRH(&view, &eyePos, &targetPos, &D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+			D3DXVECTOR3 eyePos = eyeDir * 2.0f;
+			D3DXMatrixLookAtLH(&view, &eyePos, &targetPos, &D3DXVECTOR3(0.0f, 1.0f, 0.0f));
 			
 			D3DXMATRIX proj;
 			D3DXMatrixPerspectiveFovLH(&proj, D3DX_PI / 4.0f, (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, NEAR_CLIP, FAR_CLIP);
