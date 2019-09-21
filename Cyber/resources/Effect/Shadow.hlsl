@@ -1,18 +1,12 @@
 matrix matShader;
 matrix matVP;
 
-struct VS_INPUT
+float4 vs(float4 position : POSITION0) : POSITION0
 {
-	float4 position : POSITION;
-};
-
-float4 vs(VS_INPUT IN)
-{
-	VS_OUTPUT OUT = (VS_OUTPUT)0;
-	return mul(mul(IN.position, matShader), matVP);
+	return mul(mul(position, matShader), matVP);
 }
 
-float4 ps(VS_OUTPUT IN) : COLOR0
+float4 ps(float4 position : POSITION0) : COLOR0
 {
 	return float4(0.3f, 0.3f, 0.3f, 1.0f);
 }
@@ -25,5 +19,5 @@ technique Shadow
 
 		VertexShader = compile vs_2_0 vs();
 		PixelShader = compile ps_2_0 ps();
-	};
-};
+	}
+}

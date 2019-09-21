@@ -13,7 +13,7 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Shader">
+    <Filter Include="Effect">
       <UniqueIdentifier>{d0971666-1e1f-418e-bef8-8cc332d6c3d1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -43,11 +43,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shadow.hlsl">
-      <Filter>Shader</Filter>
+    <None Include="resources\Effect\LambertDiffuse.hlsl">
+      <Filter>Effect</Filter>
     </None>
-    <None Include="LambertDiffuse.hlsl">
-      <Filter>Shader</Filter>
+    <None Include="resources\Effect\Shadow.hlsl">
+      <Filter>Effect</Filter>
     </None>
   </ItemGroup>
 </Project>

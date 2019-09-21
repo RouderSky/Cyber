@@ -1,5 +1,12 @@
 #include "application.h"
 
+IDirect3DDevice9 *pD3DDevice = NULL;
+ID3DXSprite *pSprite = NULL;
+ID3DXFont *pText = NULL;
+ID3DXEffect *pLambertDiffuseEffect = NULL;
+ID3DXEffect *pShadowEffect = NULL;
+ofstream streanOfDebug("debug.txt");
+
 Application::Application()
 {
 	m_angle = 0.0f;
@@ -7,7 +14,21 @@ Application::Application()
 
 Application::~Application()
 {
-	global::Release();
+	if (pD3DDevice != NULL)
+		pD3DDevice->Release();
+	if (pText != NULL)
+		pText->Release();
+	if (pSprite != NULL)
+		pSprite->Release();
+	if (pLambertDiffuseEffect != NULL)
+		pLambertDiffuseEffect->Release();
+	if (pShadowEffect != NULL)
+		pShadowEffect->Release();
+
+	streanOfDebug << "Application Terminated \n";
+
+	if (streanOfDebug.good())
+		streanOfDebug.close();
 }
 
 //CALLBACK什么意思？
@@ -27,7 +48,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 {
-	global::streanOfDebug << "Applocation Started \n";
+	streanOfDebug << "Applocation Started \n";
 
 	//注册一个窗口类
 	WNDCLASS wc;
@@ -65,7 +86,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	IDirect3D9* d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
 	if (d3d9 == NULL)
 	{
-		global::streanOfDebug << "Direct3DCreate9() - FAILED \n";
+		streanOfDebug << "Direct3DCreate9() - FAILED \n";
 		return E_FAIL;		//？
 	}
 
@@ -73,7 +94,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	D3DCAPS9 caps;
 	d3d9->GetDeviceCaps(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &caps);
 	if (caps.VertexShaderVersion < D3DVS_VERSION(2, 0) || caps.PixelShaderVersion < D3DPS_VERSION(2, 0))
-		global::streanOfDebug << "Warning - Your graphic card does not support vertec and pixelshaders version 2.0 \n";
+		streanOfDebug << "Warning - Your graphic card does not support vertec and pixelshaders version 2.0 \n";
 
 	int typeOfSupportedTransAndLight = 0;
 	if (caps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT)
@@ -96,9 +117,9 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	m_present.Flags = 0;								//？
 	m_present.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;		//刷新率？
 	m_present.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;		//？
-	if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hwnd, typeOfSupportedTransAndLight, &m_present, &global::pD3DDevice)))
+	if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hwnd, typeOfSupportedTransAndLight, &m_present, &pD3DDevice)))
 	{
-		global::streanOfDebug << "Failed to create IDirect3DDevice9 \n";
+		streanOfDebug << "Failed to create IDirect3DDevice9 \n";
 		return E_FAIL;
 	}
 
@@ -106,24 +127,24 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	d3d9->Release();
 
 	//创建显示文本
-	D3DXCreateFont(global::pD3DDevice, 20, 0, FW_BOLD, 1, false,
+	D3DXCreateFont(pD3DDevice, 20, 0, FW_BOLD, 1, false,
 		DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY,
-		DEFAULT_PITCH | FF_DONTCARE, "Arial", &global::pText);
+		DEFAULT_PITCH | FF_DONTCARE, "Arial", &pText);
 
 	//？
-	D3DXCreateSprite(global::pD3DDevice, &global::pSprite);
+	D3DXCreateSprite(pD3DDevice, &pSprite);
 
 	//加载shader文件
 	ID3DXBuffer *pErrorMsgs = NULL;
 	char *effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, "LambertDiffuse.hlsl");
 	HRESULT hRes = D3DXCreateEffectFromFile(
-		global::pD3DDevice, 
+		pD3DDevice, 
 		effectFileName, 
 		NULL, 
 		NULL,
 		D3DXSHADER_DEBUG,
 		NULL,
-		&global::pLambertDiffuseEffect,
+		&pLambertDiffuseEffect,
 		&pErrorMsgs);
 	//delete effectFileName;		//为啥delete会报错？
 	if (FAILED(hRes) && (pErrorMsgs != NULL))
@@ -134,15 +155,15 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 
 	effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, "Shadow.hlsl");
 	hRes = D3DXCreateEffectFromFile(
-		global::pD3DDevice,
+		pD3DDevice,
 		effectFileName,
 		NULL,
 		NULL,
 		D3DXSHADER_DEBUG,
 		NULL,
-		&global::pShadowEffect,
+		&pShadowEffect,
 		&pErrorMsgs);
-	//delete effectFileName;		//为啥delete会报错？
+	//delete effectFileName;
 	if (FAILED(hRes) && (pErrorMsgs != NULL))
 	{
 		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Shadow Effect Error", MB_OK);		//MB_OK是啥？
@@ -157,7 +178,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 		MessageBox(NULL, "Error", "Load Mesh Error", MB_OK);
 		return E_FAIL;
 	}
-	delete meshFileName;
+	//delete meshFileName;
 
 	//初始化其余变量
 	m_deviceLost = false;
@@ -196,15 +217,15 @@ void Application::OnDeviceLost()
 	try
 	{
 		//哪些对象需要调一下OnLostDevice？
-		global::pText->OnLostDevice();
-		global::pSprite->OnLostDevice();
-		global::pLambertDiffuseEffect->OnLostDevice();
-		global::pShadowEffect->OnLostDevice();
+		pText->OnLostDevice();
+		pSprite->OnLostDevice();
+		pLambertDiffuseEffect->OnLostDevice();
+		pShadowEffect->OnLostDevice();
 		m_deviceLost = true;
 	}
 	catch (...)
 	{
-		global::streanOfDebug << "Error occured in Application::DeviceLost() \n";
+		streanOfDebug << "Error occured in Application::DeviceLost() \n";
 	}
 }
 
@@ -212,17 +233,17 @@ void Application::OnDeviceGained()
 {
 	try
 	{
-		global::pD3DDevice->Reset(&m_present);		//什么时候需要调用一下？
+		pD3DDevice->Reset(&m_present);		//什么时候需要调用一下？
 		//哪些对象需要调一下OnResetDevice？
-		global::pText->OnResetDevice();
-		global::pSprite->OnResetDevice();
-		global::pLambertDiffuseEffect->OnResetDevice();
-		global::pShadowEffect->OnResetDevice();
+		pText->OnResetDevice();
+		pSprite->OnResetDevice();
+		pLambertDiffuseEffect->OnResetDevice();
+		pShadowEffect->OnResetDevice();
 		m_deviceLost = false;
 	}
 	catch (...)
 	{
-		global::streanOfDebug << "Error occured in Application::DeviceGained() \n";
+		streanOfDebug << "Error occured in Application::DeviceGained() \n";
 	}
 }
 
@@ -231,7 +252,7 @@ void Application::Update(float deltaTime)
 	try
 	{
 		//检查显示设备状态
-		HRESULT coop = global::pD3DDevice->TestCooperativeLevel();		//j...
+		HRESULT coop = pD3DDevice->TestCooperativeLevel();		//j...
 		if (coop != D3D_OK)
 		{
 			if (coop == D3DERR_DEVICELOST)		//到底是什么东西丢失了？
@@ -275,7 +296,7 @@ void Application::Update(float deltaTime)
 	}
 	catch (...)		//... 是什么语法？
 	{
-		global::streanOfDebug << "Error in Application::Update() \n";
+		streanOfDebug << "Error in Application::Update() \n";
 	}
 }
 
@@ -306,50 +327,50 @@ void Application::Render()
 			D3DXMatrixPerspectiveFovLH(&proj, D3DX_PI / 4.0f, (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, NEAR_CLIP, FAR_CLIP);
 		
 			//这个不用设置也可以吧？
-			global::pD3DDevice->SetTransform(D3DTS_WORLD, &world);
-			global::pD3DDevice->SetTransform(D3DTS_VIEW, &view);
-			global::pD3DDevice->SetTransform(D3DTS_PROJECTION, &proj);
+			pD3DDevice->SetTransform(D3DTS_WORLD, &world);
+			pD3DDevice->SetTransform(D3DTS_VIEW, &view);
+			pD3DDevice->SetTransform(D3DTS_PROJECTION, &proj);
 			//////////////////////////////////////////////////////////
 
 			//开始场景绘制
-			global::pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);
-			if (SUCCEEDED(global::pD3DDevice->BeginScene()))
+			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);
+			if (SUCCEEDED(pD3DDevice->BeginScene()))
 			{
-				global::pLambertDiffuseEffect->SetMatrix("matW", &world);
-				global::pLambertDiffuseEffect->SetMatrix("matVP", &(view * proj));
-				global::pLambertDiffuseEffect->SetVector("lightPos", &lightPos);
-				D3DXHANDLE hTech = global::pLambertDiffuseEffect->GetTechniqueByName("LambertDiffuse");
-				global::pLambertDiffuseEffect->SetTechnique(hTech);
+				pLambertDiffuseEffect->SetMatrix("matW", &world);
+				pLambertDiffuseEffect->SetMatrix("matVP", &(view * proj));
+				pLambertDiffuseEffect->SetVector("lightPos", &lightPos);
+				D3DXHANDLE hTech = pLambertDiffuseEffect->GetTechniqueByName("LambertDiffuse");
+				pLambertDiffuseEffect->SetTechnique(hTech);
 				UINT passCont;
-				global::pLambertDiffuseEffect->Begin(&passCont, NULL);
+				pLambertDiffuseEffect->Begin(&passCont, NULL);
 				for (UINT i = 0; i < passCont; i++)
 				{
-					global::pLambertDiffuseEffect->BeginPass(i);
+					pLambertDiffuseEffect->BeginPass(i);
 					m_soldier.Render();
-					global::pLambertDiffuseEffect->EndPass();
+					pLambertDiffuseEffect->EndPass();
 				}
-				global::pLambertDiffuseEffect->End();
+				pLambertDiffuseEffect->End();
 
-				global::pShadowEffect->SetMatrix("matW", &shadow);
-				global::pShadowEffect->SetMatrix("matVP", &(view * proj));
-				hTech = global::pShadowEffect->GetTechniqueByName("Shadow");
-				global::pShadowEffect->SetTechnique(hTech);
-				global::pShadowEffect->Begin(&passCont, NULL);
+				pShadowEffect->SetMatrix("matW", &shadow);
+				pShadowEffect->SetMatrix("matVP", &(view * proj));
+				hTech = pShadowEffect->GetTechniqueByName("Shadow");
+				pShadowEffect->SetTechnique(hTech);
+				pShadowEffect->Begin(&passCont, NULL);
 				for (UINT i = 0; i < passCont; i++)
 				{
-					global::pShadowEffect->BeginPass(i);
+					pShadowEffect->BeginPass(i);
 					m_soldier.Render();
-					global::pShadowEffect->EndPass();
+					pShadowEffect->EndPass();
 				}
-				global::pShadowEffect->End();
+				pShadowEffect->End();
 
-				global::pD3DDevice->EndScene();
-				global::pD3DDevice->Present(NULL, NULL, NULL, NULL);
+				pD3DDevice->EndScene();
+				pD3DDevice->Present(NULL, NULL, NULL, NULL);
 			}
 		}
 		catch (...)
 		{
-			global::streanOfDebug << "Error in Application::Render() \n";
+			streanOfDebug << "Error in Application::Render() \n";
 		}
 	}
 }

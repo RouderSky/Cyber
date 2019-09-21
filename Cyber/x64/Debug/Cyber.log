@@ -1,7 +1,1 @@
-﻿  application.cpp
-  global.cpp
-  main.cpp
-  mesh.cpp
-  正在生成代码...
-d:\c++\cyber\cyber\main.cpp(10): warning C4715: “WinMain”: 不是所有的控件路径都返回值
-  Cyber.vcxproj -> D:\C++\Cyber\x64\Debug\Cyber.exe
+﻿  Cyber.vcxproj -> D:\C++\Cyber\x64\Debug\Cyber.exe

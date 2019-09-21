@@ -1,6 +1,7 @@
 matrix matW;
 matrix matVP;
 
+
 float4 lightColor;
 float3 lightPos;
 texture texDiffuse;
@@ -15,14 +16,14 @@ sampler DiffuseSampler = sampler_state
 
 struct VS_INPUT
 {
-	float4 position : POSITION;
+	float4 position : POSITION0;
 	float3 normal : NORMAL;
 	float2 tex0 : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
-	float4 position : POSITION;
+	float4 position : POSITION0;
 	float2 tex0 : TEXCOORD0;
 	float shade : TEXCOORD1;
 };
@@ -41,7 +42,7 @@ VS_OUTPUT vs(VS_INPUT IN)
 	return OUT;
 }
 
-float ps(VS_OUTPUT IN) :
+float4 ps(VS_OUTPUT IN) : COLOR0
 {
 	float4 diffuseColor = tex2D(DiffuseSampler, IN.tex0);
 	return IN.shade * lightColor * diffuseColor;
@@ -54,5 +55,5 @@ technique LambertDiffuse
 		Lighting = false;
 		VertexShader = compile vs_2_0 vs();
 		PixelShader = compile ps_2_0 ps();
-	};
-};
+	}
+}

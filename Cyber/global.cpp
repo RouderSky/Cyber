@@ -11,25 +11,6 @@ D3DMATERIAL9 global::InitMtrl(D3DXCOLOR a, D3DXCOLOR d, D3DXCOLOR s, D3DXCOLOR e
 	return mtrl;
 }
 
-void global::Release()
-{
-	if (pD3DDevice != NULL)
-		pD3DDevice->Release();
-	if (pText != NULL)
-		pText->Release();
-	if (pSprite != NULL)
-		pSprite->Release();
-	if (pLambertDiffuseEffect != NULL)
-		pLambertDiffuseEffect->Release();
-	if (pShadowEffect != NULL)
-		pShadowEffect->Release();
-
-	streanOfDebug << "Application Terminated \n";
-
-	if (streanOfDebug.good())
-		streanOfDebug.close();
-}
-
 char* global::CombineStr(const char* str1, const char* str2)
 {
 	char *res = new char[strlen(str1) + strlen(str2)];

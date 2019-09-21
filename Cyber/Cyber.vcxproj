@@ -132,12 +132,12 @@
     <ClCompile Include="mesh.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shadow.hlsl">
+    <None Include="resources\Effect\LambertDiffuse.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="LambertDiffuse.hlsl">
+    <None Include="resources\Effect\Shadow.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
