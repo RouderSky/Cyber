@@ -306,9 +306,9 @@ void Application::Render()
 	{
 		try
 		{
-			//计算好所需矩阵
 			D3DXPLANE ground(0.0f, 1.0f, 0.0f, 0.0f);
 			D3DXVECTOR4 lightPos(-20.0f, 75.0f, -120.0f, 0.0f);
+			D3DXVECTOR4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 			D3DXMATRIX shadow;
 			D3DXMatrixShadow(&shadow, &lightPos, &ground);
@@ -339,6 +339,7 @@ void Application::Render()
 				pLambertDiffuseEffect->SetMatrix("matW", &world);
 				pLambertDiffuseEffect->SetMatrix("matVP", &(view * proj));
 				pLambertDiffuseEffect->SetVector("lightPos", &lightPos);
+				pLambertDiffuseEffect->SetVector("lightColor", &lightColor);
 				D3DXHANDLE hTech = pLambertDiffuseEffect->GetTechniqueByName("LambertDiffuse");
 				pLambertDiffuseEffect->SetTechnique(hTech);
 				UINT passCont;
