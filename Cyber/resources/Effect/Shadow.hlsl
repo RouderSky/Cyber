@@ -1,9 +1,9 @@
-matrix matShader;
+matrix matShadow;
 matrix matVP;
 
 float4 vs(float4 position : POSITION0) : POSITION0
 {
-	return mul(mul(position, matShader), matVP);
+	return mul(mul(position, matShadow), matVP);
 }
 
 float4 ps(float4 position : POSITION0) : COLOR0

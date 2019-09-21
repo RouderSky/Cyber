@@ -351,7 +351,7 @@ void Application::Render()
 				}
 				pLambertDiffuseEffect->End();
 
-				pShadowEffect->SetMatrix("matW", &shadow);
+				pShadowEffect->SetMatrix("matShadow", &shadow);
 				pShadowEffect->SetMatrix("matVP", &(view * proj));
 				hTech = pShadowEffect->GetTechniqueByName("Shadow");
 				pShadowEffect->SetTechnique(hTech);
