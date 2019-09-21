@@ -30,3 +30,5 @@
 *.exe
 *.out
 *.app
+
+.vs/Cyber/v15/Browse.VC.opendb
