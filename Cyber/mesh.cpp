@@ -1,7 +1,5 @@
 #include "mesh.h"
 
-#pragma warning(disable:4996)
-
 Mesh::Mesh()
 {
 	m_pMesh = NULL;
@@ -26,7 +24,7 @@ HRESULT Mesh::Load(const char fName[])
 	ID3DXBuffer * adjacencyBfr = NULL;
 	ID3DXBuffer * materialBfr = NULL;
 	DWORD noMaterials = NULL;
-	if (FAILED(D3DXLoadMeshFromX(fName, D3DXMESH_MANAGED, global::pDevice, &adjacencyBfr, &materialBfr, NULL, &noMaterials, &m_pMesh)))
+	if (FAILED(D3DXLoadMeshFromX(fName, D3DXMESH_MANAGED, global::pD3DDevice, &adjacencyBfr, &materialBfr, NULL, &noMaterials, &m_pMesh)))
 		return E_FAIL;
 	
 	//存储数据
@@ -42,7 +40,7 @@ HRESULT Mesh::Load(const char fName[])
 			strcpy(textureFileName, ROOT_PATH_TO_TEXTURES);
 			strcat(textureFileName, mtrls[i].pTextureFilename);
 			IDirect3DTexture9 *newTexture = NULL;
-			D3DXCreateTextureFromFile(global::pDevice, textureFileName, &newTexture);
+			D3DXCreateTextureFromFile(global::pD3DDevice, textureFileName, &newTexture);
 			m_textures.push_back(newTexture);
 		}
 		else
@@ -67,11 +65,11 @@ void Mesh::Render()
 	for (int i=0;i<numMaterials;++i)
 	{
 		if (m_textures[i] != NULL)
-			global::pDevice->SetMaterial(&global::mtrlOfWhite);
+			global::pD3DDevice->SetMaterial(&global::mtrlOfWhite);
 		else
-			global::pDevice->SetMaterial(&m_materials[i]);		//没有纹理时，直接限时材质颜色就好
+			global::pD3DDevice->SetMaterial(&m_materials[i]);		//没有纹理时，直接限时材质颜色就好
 
-		global::pDevice->SetTexture(0, m_textures[i]);		//竟然可以是空的？
+		global::pD3DDevice->SetTexture(0, m_textures[i]);		//竟然可以是空的？
 	}
 }
 
@@ -91,5 +89,5 @@ void Mesh::Release()
 	}
 
 	m_textures.clear();
-	m_materials.clear;
+	m_materials.clear();
 }

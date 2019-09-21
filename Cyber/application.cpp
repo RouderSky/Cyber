@@ -66,7 +66,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	if (d3d9 == NULL)
 	{
 		global::streanOfDebug << "Direct3DCreate9() - FAILED \n";
-		return E_FAIL;
+		return E_FAIL;		//？
 	}
 
 	//设备性能检测
@@ -96,7 +96,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	m_present.Flags = 0;								//？
 	m_present.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;		//刷新率？
 	m_present.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;		//？
-	if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hwnd, typeOfSupportedTransAndLight, &m_present, &global::pDevice)))
+	if (FAILED(d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hwnd, typeOfSupportedTransAndLight, &m_present, &global::pD3DDevice)))
 	{
 		global::streanOfDebug << "Failed to create IDirect3DDevice9 \n";
 		return E_FAIL;
@@ -106,22 +106,47 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	d3d9->Release();
 
 	//创建显示文本
-	D3DXCreateFont(global::pDevice, 20, 0, FW_BOLD, 1, false,
+	D3DXCreateFont(global::pD3DDevice, 20, 0, FW_BOLD, 1, false,
 		DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY,
 		DEFAULT_PITCH | FF_DONTCARE, "Arial", &global::pText);
 
 	//？
-	D3DXCreateSprite(global::pDevice, &global::pSprite);
+	D3DXCreateSprite(global::pD3DDevice, &global::pSprite);
 
 	//加载shader文件
 	ID3DXBuffer *pErrorMsgs = NULL;
-	char *effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, "lightting.fx");
-	HRESULT hRes = D3DXCreateEffectFromFile(global::pDevice, effectFileName);
-	delete effectFileName;
+	char *effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, "LambertDiffuse.hlsl");
+	HRESULT hRes = D3DXCreateEffectFromFile(
+		global::pD3DDevice, 
+		effectFileName, 
+		NULL, 
+		NULL,
+		D3DXSHADER_DEBUG,
+		NULL,
+		&global::pLambertDiffuseEffect,
+		&pErrorMsgs);
+	//delete effectFileName;		//为啥delete会报错？
 	if (FAILED(hRes) && (pErrorMsgs != NULL))
 	{
-		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Effect Error", MB_OK);		//MB_OK是啥？
-		return E_FAIL;		//？
+		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load LambertDiffuse Effect Error", MB_OK);		//MB_OK是啥？
+		return E_FAIL;
+	}
+
+	effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, "Shadow.hlsl");
+	hRes = D3DXCreateEffectFromFile(
+		global::pD3DDevice,
+		effectFileName,
+		NULL,
+		NULL,
+		D3DXSHADER_DEBUG,
+		NULL,
+		&global::pShadowEffect,
+		&pErrorMsgs);
+	//delete effectFileName;		//为啥delete会报错？
+	if (FAILED(hRes) && (pErrorMsgs != NULL))
+	{
+		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Shadow Effect Error", MB_OK);		//MB_OK是啥？
+		return E_FAIL;
 	}
 
 	//加载网格
@@ -140,6 +165,31 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	return S_OK;		//？
 }
 
+void Application::EnterMsgLoop()
+{
+	DWORD lastTime = GetTickCount();
+	MSG msg;
+	memset(&msg, 0, sizeof(MSG));
+	while (msg.message != WM_QUIT)		//当收到退出消息循环的消息时退出
+	{
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))		//这些参数是什么意思？
+		{
+			//有系统消息就处理
+			TranslateMessage(&msg);	//？
+			DispatchMessage(&msg);	//？
+		}
+		else
+		{
+			//没有系统消息就干自己的事情
+			DWORD curTime = GetTickCount();
+			float deltaTime = (curTime - lastTime)*0.001f;
+			Update(deltaTime);
+			Render();
+			lastTime = curTime;
+		}
+	}
+}
+
 //到底是什么丢失了？
 void Application::OnDeviceLost()
 {
@@ -148,7 +198,8 @@ void Application::OnDeviceLost()
 		//哪些对象需要调一下OnLostDevice？
 		global::pText->OnLostDevice();
 		global::pSprite->OnLostDevice();
-		global::pEffect->OnLostDevice();
+		global::pLambertDiffuseEffect->OnLostDevice();
+		global::pShadowEffect->OnLostDevice();
 		m_deviceLost = true;
 	}
 	catch (...)
@@ -161,11 +212,12 @@ void Application::OnDeviceGained()
 {
 	try
 	{
-		global::pDevice->Reset(&m_present);		//什么时候需要调用一下？
+		global::pD3DDevice->Reset(&m_present);		//什么时候需要调用一下？
 		//哪些对象需要调一下OnResetDevice？
 		global::pText->OnResetDevice();
 		global::pSprite->OnResetDevice();
-		global::pEffect->OnResetDevice();
+		global::pLambertDiffuseEffect->OnResetDevice();
+		global::pShadowEffect->OnResetDevice();
 		m_deviceLost = false;
 	}
 	catch (...)
@@ -179,7 +231,7 @@ void Application::Update(float deltaTime)
 	try
 	{
 		//检查显示设备状态
-		HRESULT coop = global::pDevice->TestCooperativeLevel();		//j...
+		HRESULT coop = global::pD3DDevice->TestCooperativeLevel();		//j...
 		if (coop != D3D_OK)
 		{
 			if (coop == D3DERR_DEVICELOST)		//到底是什么东西丢失了？
@@ -194,16 +246,13 @@ void Application::Update(float deltaTime)
 			return;
 		}
 
-		//自定义逻辑
-		m_angle += deltaTime;
-
 		//键盘输入处理
-		if (KeyDown(VK_ESCAPE))
+		if (global::KeyDown(VK_ESCAPE))
 		{
 			Quit();
 		}
 
-		if (KeyDown(VK_RETURN) && KeyDown(VK_MENU))		//ALT + RETURN
+		if (global::KeyDown(VK_RETURN) && global::KeyDown(VK_MENU))		//ALT + RETURN
 		{
 			//切换功能好像不行Release
 			m_present.Windowed = !m_present.Windowed;
@@ -220,6 +269,9 @@ void Application::Update(float deltaTime)
 				UpdateWindow(m_hwnd);
 			}
 		}
+
+		//自定义逻辑
+		m_angle += deltaTime;
 	}
 	catch (...)		//... 是什么语法？
 	{
@@ -233,10 +285,67 @@ void Application::Render()
 	{
 		try
 		{
-			D3DXMATRIX identity, shadow;
-			D3DXMatrixIdentity(&identity);
+			//计算好所需矩阵
+			D3DXPLANE ground(0.0f, 1.0f, 0.0f, 0.0f);
+			D3DXVECTOR4 lightPos(-20.0f, 75.0f, -120.0f, 0.0f);
 
+			D3DXMATRIX shadow;
+			D3DXMatrixShadow(&shadow, &lightPos, &ground);
 
+			D3DXMATRIX world;
+			D3DXMatrixIdentity(&world);
+
+			D3DXMATRIX view;
+			D3DXVECTOR3 targetPos(0.0f, 1.0f, 0.0f);		//应该根据world的位置来计算才对...
+			D3DXVECTOR3 eyeDir(cos(m_angle), 1.0f, sin(m_angle));
+			float distanceFromEye2Tar = 2.0;
+			D3DXVECTOR3 eyePos = targetPos + eyeDir * distanceFromEye2Tar;
+			D3DXMatrixLookAtRH(&view, &eyePos, &targetPos, &D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+			
+			D3DXMATRIX proj;
+			D3DXMatrixPerspectiveFovLH(&proj, D3DX_PI / 4.0f, (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, NEAR_CLIP, FAR_CLIP);
+		
+			//这个不用设置也可以吧？
+			global::pD3DDevice->SetTransform(D3DTS_WORLD, &world);
+			global::pD3DDevice->SetTransform(D3DTS_VIEW, &view);
+			global::pD3DDevice->SetTransform(D3DTS_PROJECTION, &proj);
+			//////////////////////////////////////////////////////////
+
+			//开始场景绘制
+			global::pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);
+			if (SUCCEEDED(global::pD3DDevice->BeginScene()))
+			{
+				global::pLambertDiffuseEffect->SetMatrix("matW", &world);
+				global::pLambertDiffuseEffect->SetMatrix("matVP", &(view * proj));
+				global::pLambertDiffuseEffect->SetVector("lightPos", &lightPos);
+				D3DXHANDLE hTech = global::pLambertDiffuseEffect->GetTechniqueByName("LambertDiffuse");
+				global::pLambertDiffuseEffect->SetTechnique(hTech);
+				UINT passCont;
+				global::pLambertDiffuseEffect->Begin(&passCont, NULL);
+				for (UINT i = 0; i < passCont; i++)
+				{
+					global::pLambertDiffuseEffect->BeginPass(i);
+					m_soldier.Render();
+					global::pLambertDiffuseEffect->EndPass();
+				}
+				global::pLambertDiffuseEffect->End();
+
+				global::pShadowEffect->SetMatrix("matW", &shadow);
+				global::pShadowEffect->SetMatrix("matVP", &(view * proj));
+				hTech = global::pShadowEffect->GetTechniqueByName("Shadow");
+				global::pShadowEffect->SetTechnique(hTech);
+				global::pShadowEffect->Begin(&passCont, NULL);
+				for (UINT i = 0; i < passCont; i++)
+				{
+					global::pShadowEffect->BeginPass(i);
+					m_soldier.Render();
+					global::pShadowEffect->EndPass();
+				}
+				global::pShadowEffect->End();
+
+				global::pD3DDevice->EndScene();
+				global::pD3DDevice->Present(NULL, NULL, NULL, NULL);
+			}
 		}
 		catch (...)
 		{
