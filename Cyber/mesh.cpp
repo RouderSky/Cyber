@@ -70,6 +70,8 @@ void Mesh::Render()
 			pD3DDevice->SetMaterial(&m_materials[i]);		//没有纹理时，直接限时材质颜色就好
 
 		pD3DDevice->SetTexture(0, m_textures[i]);		//竟然可以是空的？
+
+		m_pMesh->DrawSubset(i);
 	}
 }
 
