@@ -6,5 +6,5 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 	Application app;
 	if (FAILED(app.Init(hInstance, true)))
 		return 0;
-	app.EnterMsgLoop();
+	return app.EnterMsgLoop();
 }

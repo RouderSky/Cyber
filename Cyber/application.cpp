@@ -186,7 +186,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	return S_OK;		//？
 }
 
-void Application::EnterMsgLoop()
+int Application::EnterMsgLoop()
 {
 	DWORD lastTime = GetTickCount();
 	MSG msg;
@@ -209,6 +209,8 @@ void Application::EnterMsgLoop()
 			lastTime = curTime;
 		}
 	}
+
+	return (int)msg.wParam;
 }
 
 //到底是什么丢失了？
@@ -317,19 +319,13 @@ void Application::Render()
 			D3DXMatrixIdentity(&world);
 
 			D3DXMATRIX view;
-			D3DXVECTOR3 targetPos(0.0f, 1.0f, 0.0f);		//应该根据world的位置来计算才对...
+			D3DXVECTOR3 targetPos(0.0f, 1.0f, 0.0f);
 			D3DXVECTOR3 eyeDir(cos(m_angle), 1.0f, sin(m_angle));
 			D3DXVECTOR3 eyePos = eyeDir * 2.0f;
 			D3DXMatrixLookAtLH(&view, &eyePos, &targetPos, &D3DXVECTOR3(0.0f, 1.0f, 0.0f));
 			
 			D3DXMATRIX proj;
 			D3DXMatrixPerspectiveFovLH(&proj, D3DX_PI / 4.0f, (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, NEAR_CLIP, FAR_CLIP);
-		
-			//这个不用设置也可以吧？
-			pD3DDevice->SetTransform(D3DTS_WORLD, &world);
-			pD3DDevice->SetTransform(D3DTS_VIEW, &view);
-			pD3DDevice->SetTransform(D3DTS_PROJECTION, &proj);
-			//////////////////////////////////////////////////////////
 
 			//开始场景绘制
 			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);

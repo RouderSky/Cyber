@@ -7,7 +7,7 @@ public:
 	Application();
 	~Application();
 	HRESULT Init(HINSTANCE hAppIns, bool windowed);
-	void EnterMsgLoop();
+	int EnterMsgLoop();
 private:
 	HWND m_hwnd;
 	D3DPRESENT_PARAMETERS m_present;

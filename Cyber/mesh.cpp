@@ -38,7 +38,7 @@ HRESULT Mesh::Load(const char fName[])
 		//Œ∆¿Ì
 		if (mtrls[i].pTextureFilename != NULL)
 		{
-			char *textureFileName = global::CombineStr(ROOT_PATH_TO_TEXTURES, mtrls[i].pTextureFilename);
+			char *textureFileName = global::CombineStr(ROOT_PATH_TO_MESH_TEXTURES, mtrls[i].pTextureFilename);
 			IDirect3DTexture9 *newTexture = NULL;
 			D3DXCreateTextureFromFile(pD3DDevice, textureFileName, &newTexture);
 			m_textures.push_back(newTexture);
