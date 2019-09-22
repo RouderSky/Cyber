@@ -13,7 +13,7 @@ D3DMATERIAL9 global::InitMtrl(D3DXCOLOR a, D3DXCOLOR d, D3DXCOLOR s, D3DXCOLOR e
 
 char* global::CombineStr(const char* str1, const char* str2)
 {
-	char *res = new char[strlen(str1) + strlen(str2)];
+	char *res = new char[strlen(str1) + strlen(str2) + 1];
 
 	strcpy(res, str1);
 	strcat(res, str2);

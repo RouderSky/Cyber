@@ -1,7 +1,5 @@
 #include "mesh.h"
 
-extern IDirect3DDevice9 *pD3DDevice;
-
 Mesh::Mesh()
 {
 	m_pMesh = NULL;

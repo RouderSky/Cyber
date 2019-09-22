@@ -1,5 +1,6 @@
 #include <d3dx9.h>
 #include "mesh.h"
+#include "skinnedMesh.h"
 
 class Application
 {
@@ -13,6 +14,7 @@ private:
 	D3DPRESENT_PARAMETERS m_present;
 	bool m_deviceLost;		//显示设备是否丢失
 	Mesh m_soldier;
+	SkinnedMesh m_drone;
 	float m_angle;
 
 	void Update(float deltaTime);

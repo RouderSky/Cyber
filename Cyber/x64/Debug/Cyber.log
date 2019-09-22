@@ -1,2 +1,6 @@
 ﻿  application.cpp
+  main.cpp
+  skinnedMesh.cpp
+d:\c++\cyber\cyber\skinnedmesh.cpp(27): warning C4305: “参数”: 从“double”到“FLOAT”截断
+  正在生成代码...
   Cyber.vcxproj -> D:\C++\Cyber\x64\Debug\Cyber.exe

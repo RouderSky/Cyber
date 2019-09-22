@@ -146,7 +146,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 		NULL,
 		&pLambertDiffuseEffect,
 		&pErrorMsgs);
-	//delete effectFileName;		//为啥delete会报错？
+	delete []effectFileName;
 	if (FAILED(hRes) && (pErrorMsgs != NULL))
 	{
 		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load LambertDiffuse Effect Error", MB_OK);		//MB_OK是啥？
@@ -163,7 +163,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 		NULL,
 		&pShadowEffect,
 		&pErrorMsgs);
-	//delete effectFileName;
+	delete []effectFileName;
 	if (FAILED(hRes) && (pErrorMsgs != NULL))
 	{
 		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Shadow Effect Error", MB_OK);		//MB_OK是啥？
@@ -171,14 +171,18 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	}
 
 	//加载网格
-	char *meshFileName = global::CombineStr(ROOT_PATH_TO_MESH, "soldier.x");
-	hRes = m_soldier.Load(meshFileName);
-	if (FAILED(hRes))
-	{
-		MessageBox(NULL, "Error", "Load Mesh Error", MB_OK);
-		return E_FAIL;
-	}
-	//delete meshFileName;
+	char *meshFileName = global::CombineStr(ROOT_PATH_TO_MESH, "soldier1.x");
+ 	hRes = m_soldier.Load(meshFileName);
+ 	if (FAILED(hRes))
+ 	{
+ 		MessageBox(NULL, "Error", "Load Mesh Error", MB_OK);
+ 		return E_FAIL;
+ 	}
+	delete[]meshFileName;
+
+	meshFileName = global::CombineStr(ROOT_PATH_TO_MESH, "soldier2.x");
+	m_drone.Load(meshFileName);
+	delete[]meshFileName;
 
 	//初始化其余变量
 	m_deviceLost = false;
@@ -331,34 +335,38 @@ void Application::Render()
 			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);
 			if (SUCCEEDED(pD3DDevice->BeginScene()))
 			{
-				pLambertDiffuseEffect->SetMatrix("matW", &world);
-				pLambertDiffuseEffect->SetMatrix("matVP", &(view * proj));
-				pLambertDiffuseEffect->SetVector("lightPos", &lightPos);
-				pLambertDiffuseEffect->SetVector("lightColor", &lightColor);
-				D3DXHANDLE hTech = pLambertDiffuseEffect->GetTechniqueByName("LambertDiffuse");
-				pLambertDiffuseEffect->SetTechnique(hTech);
-				UINT passCont;
-				pLambertDiffuseEffect->Begin(&passCont, NULL);
-				for (UINT i = 0; i < passCont; i++)
-				{
-					pLambertDiffuseEffect->BeginPass(i);
-					m_soldier.Render();
-					pLambertDiffuseEffect->EndPass();
-				}
-				pLambertDiffuseEffect->End();
+ 				pLambertDiffuseEffect->SetMatrix("matW", &world);
+ 				pLambertDiffuseEffect->SetMatrix("matVP", &(view * proj));
+ 				pLambertDiffuseEffect->SetVector("lightPos", &lightPos);
+ 				pLambertDiffuseEffect->SetVector("lightColor", &lightColor);
+ 				D3DXHANDLE hTech = pLambertDiffuseEffect->GetTechniqueByName("LambertDiffuse");
+ 				pLambertDiffuseEffect->SetTechnique(hTech);
+ 				UINT passCont;
+ 				pLambertDiffuseEffect->Begin(&passCont, NULL);
+ 				for (UINT i = 0; i < passCont; i++)
+ 				{
+ 					pLambertDiffuseEffect->BeginPass(i);
+ 					m_soldier.Render();
+ 					pLambertDiffuseEffect->EndPass();
+ 				}
+ 				pLambertDiffuseEffect->End();
+ 
+ 				pShadowEffect->SetMatrix("matShadow", &shadow);
+ 				pShadowEffect->SetMatrix("matVP", &(view * proj));
+ 				hTech = pShadowEffect->GetTechniqueByName("Shadow");
+ 				pShadowEffect->SetTechnique(hTech);
+ 				pShadowEffect->Begin(&passCont, NULL);
+ 				for (UINT i = 0; i < passCont; i++)
+ 				{
+ 					pShadowEffect->BeginPass(i);
+ 					m_soldier.Render();
+ 					pShadowEffect->EndPass();
+ 				}
+ 				pShadowEffect->End();
 
-				pShadowEffect->SetMatrix("matShadow", &shadow);
-				pShadowEffect->SetMatrix("matVP", &(view * proj));
-				hTech = pShadowEffect->GetTechniqueByName("Shadow");
-				pShadowEffect->SetTechnique(hTech);
-				pShadowEffect->Begin(&passCont, NULL);
-				for (UINT i = 0; i < passCont; i++)
-				{
-					pShadowEffect->BeginPass(i);
-					m_soldier.Render();
-					pShadowEffect->EndPass();
-				}
-				pShadowEffect->End();
+				pD3DDevice->SetTransform(D3DTS_VIEW, &view);
+				pD3DDevice->SetTransform(D3DTS_PROJECTION, &proj);
+				m_drone.RenderSkeleton(world);
 
 				pD3DDevice->EndScene();
 				pD3DDevice->Present(NULL, NULL, NULL, NULL);

@@ -1,8 +1,6 @@
 #ifndef _GLOBAL_
 #define _GLOBAL_
 
-#pragma warning(disable:4996)
-
 #include <d3dx9.h>
 #include <fstream>
 
@@ -16,6 +14,8 @@ using namespace std;
 #define ROOT_PATH_TO_EFFECT "resources/Effect/"
 #define ROOT_PATH_TO_MESH "resources/Mesh/"
 #define ROOT_PATH_TO_MESH_TEXTURES "resources/Mesh/"
+
+extern IDirect3DDevice9 *pD3DDevice;
 
 namespace global
 {

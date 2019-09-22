@@ -27,6 +27,18 @@
     <ClInclude Include="application.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="skinnedMesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BoneHierarchyLoader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Bone.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BoneMesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mesh.cpp">
@@ -39,6 +51,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="skinnedMesh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BoneHierarchyLoader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
