@@ -335,6 +335,7 @@ void Application::Render()
 			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);
 			if (SUCCEEDED(pD3DDevice->BeginScene()))
 			{
+#if 1
  				pLambertDiffuseEffect->SetMatrix("matW", &world);
  				pLambertDiffuseEffect->SetMatrix("matVP", &(view * proj));
  				pLambertDiffuseEffect->SetVector("lightPos", &lightPos);
@@ -346,7 +347,11 @@ void Application::Render()
  				for (UINT i = 0; i < passCont; i++)
  				{
  					pLambertDiffuseEffect->BeginPass(i);
- 					m_soldier.Render();
+#if 0
+ 					//m_soldier.Render();
+#else
+					m_drone.Render();
+#endif
  					pLambertDiffuseEffect->EndPass();
  				}
  				pLambertDiffuseEffect->End();
@@ -359,15 +364,21 @@ void Application::Render()
  				for (UINT i = 0; i < passCont; i++)
  				{
  					pShadowEffect->BeginPass(i);
- 					m_soldier.Render();
+#if 0
+ 					//m_soldier.Render();
+#else
+					m_drone.Render();
+#endif
  					pShadowEffect->EndPass();
  				}
  				pShadowEffect->End();
-
+#endif
+#if 0
+				//¹Ç÷ÀäÖÈ¾
 				pD3DDevice->SetTransform(D3DTS_VIEW, &view);
 				pD3DDevice->SetTransform(D3DTS_PROJECTION, &proj);
 				m_drone.RenderSkeleton(world);
-
+#endif
 				pD3DDevice->EndScene();
 				pD3DDevice->Present(NULL, NULL, NULL, NULL);
 			}

@@ -12,9 +12,11 @@ public:
 	SkinnedMesh();
 	~SkinnedMesh();
 	void Load(const char fileName[]);
+	void Render(Bone *curBone = NULL);
 	void RenderSkeleton(D3DXMATRIX world, Bone* curBone = NULL, Bone* parent = NULL);
 
 private:
+	void SaveMatrixsOfBone2Model2Container(Bone *bone);
 	void UpdateMatrixOfBone2Model(Bone* bone, D3DXMATRIX* parentMatrix);
 
 	Bone *m_pRootBone;
