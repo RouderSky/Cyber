@@ -139,7 +139,7 @@
     <ClCompile Include="skinnedMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\Effect\LambertDiffuse.hlsl">
+    <None Include="resources\Effect\Lighting.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

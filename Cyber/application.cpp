@@ -3,7 +3,7 @@
 IDirect3DDevice9 *pD3DDevice = NULL;
 ID3DXSprite *pSprite = NULL;
 ID3DXFont *pText = NULL;
-ID3DXEffect *pLambertDiffuseEffect = NULL;
+ID3DXEffect *pLightingEffect = NULL;
 ID3DXEffect *pShadowEffect = NULL;
 ofstream streanOfDebug("debug.txt");
 
@@ -20,8 +20,8 @@ Application::~Application()
 		pText->Release();
 	if (pSprite != NULL)
 		pSprite->Release();
-	if (pLambertDiffuseEffect != NULL)
-		pLambertDiffuseEffect->Release();
+	if (pLightingEffect != NULL)
+		pLightingEffect->Release();
 	if (pShadowEffect != NULL)
 		pShadowEffect->Release();
 
@@ -136,7 +136,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 
 	//加载shader文件
 	ID3DXBuffer *pErrorMsgs = NULL;
-	char *effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, "LambertDiffuse.hlsl");
+	char *effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, "Lighting.hlsl");
 	HRESULT hRes = D3DXCreateEffectFromFile(
 		pD3DDevice, 
 		effectFileName, 
@@ -144,12 +144,12 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 		NULL,
 		D3DXSHADER_DEBUG,
 		NULL,
-		&pLambertDiffuseEffect,
+		&pLightingEffect,
 		&pErrorMsgs);
 	delete []effectFileName;
 	if (FAILED(hRes) && (pErrorMsgs != NULL))
 	{
-		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load LambertDiffuse Effect Error", MB_OK);		//MB_OK是啥？
+		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Lighting Effect Error", MB_OK);		//MB_OK是啥？
 		return E_FAIL;
 	}
 
@@ -225,7 +225,7 @@ void Application::OnDeviceLost()
 		//哪些对象需要调一下OnLostDevice？
 		pText->OnLostDevice();
 		pSprite->OnLostDevice();
-		pLambertDiffuseEffect->OnLostDevice();
+		pLightingEffect->OnLostDevice();
 		pShadowEffect->OnLostDevice();
 		m_deviceLost = true;
 	}
@@ -243,7 +243,7 @@ void Application::OnDeviceGained()
 		//哪些对象需要调一下OnResetDevice？
 		pText->OnResetDevice();
 		pSprite->OnResetDevice();
-		pLambertDiffuseEffect->OnResetDevice();
+		pLightingEffect->OnResetDevice();
 		pShadowEffect->OnResetDevice();
 		m_deviceLost = false;
 	}
@@ -336,25 +336,25 @@ void Application::Render()
 			if (SUCCEEDED(pD3DDevice->BeginScene()))
 			{
 #if 1
- 				pLambertDiffuseEffect->SetMatrix("matW", &world);
- 				pLambertDiffuseEffect->SetMatrix("matVP", &(view * proj));
- 				pLambertDiffuseEffect->SetVector("lightPos", &lightPos);
- 				pLambertDiffuseEffect->SetVector("lightColor", &lightColor);
- 				D3DXHANDLE hTech = pLambertDiffuseEffect->GetTechniqueByName("LambertDiffuse");
- 				pLambertDiffuseEffect->SetTechnique(hTech);
+ 				pLightingEffect->SetMatrix("matW", &world);
+ 				pLightingEffect->SetMatrix("matVP", &(view * proj));
+ 				pLightingEffect->SetVector("lightPos", &lightPos);
+ 				pLightingEffect->SetVector("lightColor", &lightColor);
+ 				D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
+ 				pLightingEffect->SetTechnique(hTech);
  				UINT passCont;
- 				pLambertDiffuseEffect->Begin(&passCont, NULL);
+ 				pLightingEffect->Begin(&passCont, NULL);
  				for (UINT i = 0; i < passCont; i++)
  				{
- 					pLambertDiffuseEffect->BeginPass(i);
+ 					pLightingEffect->BeginPass(i);
 #if 0
  					//m_soldier.Render();
 #else
 					m_drone.Render();
 #endif
- 					pLambertDiffuseEffect->EndPass();
+ 					pLightingEffect->EndPass();
  				}
- 				pLambertDiffuseEffect->End();
+ 				pLightingEffect->End();
  
  				pShadowEffect->SetMatrix("matShadow", &shadow);
  				pShadowEffect->SetMatrix("matVP", &(view * proj));

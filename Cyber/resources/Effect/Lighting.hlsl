@@ -47,7 +47,7 @@ float4 ps(VS_OUTPUT IN) : COLOR0
 	return IN.shade * lightColor * diffuseColor;
 }
 
-technique LambertDiffuse
+technique NormalLighting
 {
 	pass P0
 	{

@@ -61,10 +61,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\Effect\LambertDiffuse.hlsl">
+    <None Include="resources\Effect\Shadow.hlsl">
       <Filter>Effect</Filter>
     </None>
-    <None Include="resources\Effect\Shadow.hlsl">
+    <None Include="resources\Effect\Lighting.hlsl">
       <Filter>Effect</Filter>
     </None>
   </ItemGroup>
