@@ -43,7 +43,7 @@ HRESULT BoneHierarchyLoader::CreateMeshContainer(
 	{
 		//保存材质
 		D3DXMATERIAL mtrl;
-		memcpy(&mtrl, &pMaterials, sizeof(D3DXMATERIAL));
+		memcpy(&mtrl, &pMaterials[i], sizeof(D3DXMATERIAL));
 		boneMesh->materials.push_back(mtrl.MatD3D);
 
 		//保存纹理

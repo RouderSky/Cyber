@@ -300,7 +300,7 @@ void Application::Update(float deltaTime)
 		//自定义逻辑
 		m_angle += deltaTime;
 	}
-	catch (...)		//... 是什么语法？
+	catch (...)		//... 这是什么语法？
 	{
 		streanOfDebug << "Error in Application::Update() \n";
 	}
