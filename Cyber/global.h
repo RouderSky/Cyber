@@ -16,7 +16,6 @@ using namespace std;
 #define ROOT_PATH_TO_MESH_TEXTURES "resources/Mesh/"
 
 extern IDirect3DDevice9 *pD3DDevice;
-extern ID3DXEffect *pLightingEffect;
 
 namespace global
 {

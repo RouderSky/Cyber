@@ -5,10 +5,10 @@ Mesh::Mesh()
 	m_pMesh = NULL;
 }
 
-Mesh::Mesh(const char fName[])
+Mesh::Mesh(const char fName[], const char lightingEffectFileName[], const char shadowEffectFileName[])
 {
 	m_pMesh = NULL;
-	Load(fName);
+	Load(fName, lightingEffectFileName, shadowEffectFileName);
 }
 
 Mesh::~Mesh()
@@ -16,16 +16,55 @@ Mesh::~Mesh()
 	Release();
 }
 
-HRESULT Mesh::Load(const char fName[])
+HRESULT Mesh::Load(const char fName[], const char lightingEffectFileName[], const char shadowEffectFileName[])
 {
 	Release();
+
+	//加载shader文件
+	ID3DXBuffer *pErrorMsgs = NULL;
+	char *effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, lightingEffectFileName);
+	HRESULT hRes = D3DXCreateEffectFromFile(
+		pD3DDevice,
+		effectFileName,
+		NULL,
+		NULL,
+		D3DXSHADER_DEBUG,
+		NULL,
+		&pLightingEffect,
+		&pErrorMsgs);
+	delete[]effectFileName;
+	if (FAILED(hRes) && (pErrorMsgs != NULL))
+	{
+		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Lighting Effect Error", MB_OK);		//MB_OK是啥？
+		return E_FAIL;
+	}
+
+	effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, shadowEffectFileName);
+	hRes = D3DXCreateEffectFromFile(
+		pD3DDevice,
+		effectFileName,
+		NULL,
+		NULL,
+		D3DXSHADER_DEBUG,
+		NULL,
+		&pShadowEffect,
+		&pErrorMsgs);
+	delete[]effectFileName;
+	if (FAILED(hRes) && (pErrorMsgs != NULL))
+	{
+		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Shadow Effect Error", MB_OK);		//MB_OK是啥？
+		return E_FAIL;
+	}
 
 	//加载
 	ID3DXBuffer * adjacencyBfr = NULL;
 	ID3DXBuffer * materialBfr = NULL;
 	DWORD noMaterials = NULL;
 	if (FAILED(D3DXLoadMeshFromX(fName, D3DXMESH_MANAGED, pD3DDevice, &adjacencyBfr, &materialBfr, NULL, &noMaterials, &m_pMesh)))
+	{
+		MessageBox(NULL, "Error", "Load Mesh Error", MB_OK);
 		return E_FAIL;
+	}
 	
 	//存储数据
 	D3DXMATERIAL *mtrls = (D3DXMATERIAL*)materialBfr->GetBufferPointer();
@@ -56,11 +95,44 @@ HRESULT Mesh::Load(const char fName[])
 	return S_OK;
 }
 
-void Mesh::Render()
+void Mesh::Render(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
+{
+	pLightingEffect->SetMatrix("matW", world);
+	pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
+	pLightingEffect->SetVector("lightPos", lightPos);
+	pLightingEffect->SetVector("lightColor", lightColor);
+
+	D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
+	pLightingEffect->SetTechnique(hTech);
+	UINT passCont;
+	pLightingEffect->Begin(&passCont, NULL);
+	for (UINT i = 0; i < passCont; i++)
+	{
+		pLightingEffect->BeginPass(i);
+		DrawMesh();
+		pLightingEffect->EndPass();
+	}
+	pLightingEffect->End();
+
+	pShadowEffect->SetMatrix("matShadow", shadow);
+	pShadowEffect->SetMatrix("matVP", &((*view) * (*proj)));
+	hTech = pShadowEffect->GetTechniqueByName("Shadow");
+	pShadowEffect->SetTechnique(hTech);
+	pShadowEffect->Begin(&passCont, NULL);
+	for (UINT i = 0; i < passCont; i++)
+	{
+		pShadowEffect->BeginPass(i);
+		DrawMesh();
+		pShadowEffect->EndPass();
+	}
+	pShadowEffect->End();
+}
+
+void Mesh::DrawMesh()
 {
 	int numMaterials = (int)m_materials.size();
 
-	for (int i=0;i<numMaterials;++i)
+	for (int i = 0; i < numMaterials; ++i)
 	{
 		if (m_textures[i] != NULL)
 			pD3DDevice->SetMaterial(&global::mtrlOfWhite);
@@ -90,4 +162,9 @@ void Mesh::Release()
 
 	m_textures.clear();
 	m_materials.clear();
+
+	if (pLightingEffect != NULL)
+		pLightingEffect->Release();
+	if (pShadowEffect != NULL)
+		pShadowEffect->Release();
 }

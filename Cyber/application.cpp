@@ -3,9 +3,6 @@
 IDirect3DDevice9 *pD3DDevice = NULL;
 ID3DXSprite *pSprite = NULL;
 ID3DXFont *pText = NULL;
-//感觉shader不用作为全局变量
-ID3DXEffect *pLightingEffect = NULL;
-ID3DXEffect *pShadowEffect = NULL;
 //////////////////////////////////////////
 ofstream streanOfDebug("debug.txt");
 
@@ -22,10 +19,6 @@ Application::~Application()
 		pText->Release();
 	if (pSprite != NULL)
 		pSprite->Release();
-	if (pLightingEffect != NULL)
-		pLightingEffect->Release();
-	if (pShadowEffect != NULL)
-		pShadowEffect->Release();
 
 	streanOfDebug << "Application Terminated \n";
 
@@ -136,55 +129,18 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	//？
 	D3DXCreateSprite(pD3DDevice, &pSprite);
 
-	//加载shader文件
-	ID3DXBuffer *pErrorMsgs = NULL;
-	char *effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, "Lighting.hlsl");
-	HRESULT hRes = D3DXCreateEffectFromFile(
-		pD3DDevice, 
-		effectFileName, 
-		NULL, 
-		NULL,
-		D3DXSHADER_DEBUG,
-		NULL,
-		&pLightingEffect,
-		&pErrorMsgs);
-	delete []effectFileName;
-	if (FAILED(hRes) && (pErrorMsgs != NULL))
-	{
-		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Lighting Effect Error", MB_OK);		//MB_OK是啥？
-		return E_FAIL;
-	}
-
-	effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, "Shadow.hlsl");
-	hRes = D3DXCreateEffectFromFile(
-		pD3DDevice,
-		effectFileName,
-		NULL,
-		NULL,
-		D3DXSHADER_DEBUG,
-		NULL,
-		&pShadowEffect,
-		&pErrorMsgs);
-	delete []effectFileName;
-	if (FAILED(hRes) && (pErrorMsgs != NULL))
-	{
-		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Shadow Effect Error", MB_OK);		//MB_OK是啥？
-		return E_FAIL;
-	}
-
 	//加载网格
 	char *meshFileName = global::CombineStr(ROOT_PATH_TO_MESH, "soldier1.x");
- 	hRes = m_soldier.Load(meshFileName);
- 	if (FAILED(hRes))
- 	{
- 		MessageBox(NULL, "Error", "Load Mesh Error", MB_OK);
+	HRESULT hRes = m_soldier.Load(meshFileName, "Lighting.hlsl", "Shadow.hlsl");
+	if (FAILED(hRes))
  		return E_FAIL;
- 	}
 	delete[]meshFileName;
 
 	meshFileName = global::CombineStr(ROOT_PATH_TO_MESH, "soldier2.x");
-	m_drone.Load(meshFileName);
+	hRes = m_drone.Load(meshFileName, "Lighting.hlsl", "Shadow.hlsl");
 	delete[]meshFileName;
+	if (FAILED(hRes))
+		return E_FAIL;
 
 	//初始化其余变量
 	m_deviceLost = false;
@@ -227,8 +183,7 @@ void Application::OnDeviceLost()
 		//哪些对象需要调一下OnLostDevice？
 		pText->OnLostDevice();
 		pSprite->OnLostDevice();
-		pLightingEffect->OnLostDevice();
-		pShadowEffect->OnLostDevice();
+		m_drone.OnLostDevice();
 		m_deviceLost = true;
 	}
 	catch (...)
@@ -245,8 +200,7 @@ void Application::OnDeviceGained()
 		//哪些对象需要调一下OnResetDevice？
 		pText->OnResetDevice();
 		pSprite->OnResetDevice();
-		pLightingEffect->OnResetDevice();
-		pShadowEffect->OnResetDevice();
+		m_drone.OnResetDevice();
 		m_deviceLost = false;
 	}
 	catch (...)
@@ -337,54 +291,9 @@ void Application::Render()
 			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);
 			if (SUCCEEDED(pD3DDevice->BeginScene()))
 			{
-				//我觉得不应该在这里设置渲染状态，应该放到各个render函数里面，每个Mesh应该拥有自己得shader实例，有空改掉...
- 				pLightingEffect->SetMatrix("matW", &world);
- 				pLightingEffect->SetMatrix("matVP", &(view * proj));
- 				pLightingEffect->SetVector("lightPos", &lightPos);
- 				pLightingEffect->SetVector("lightColor", &lightColor);
-#if !HARDWARE_SKINNED
- 				D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
- 				pLightingEffect->SetTechnique(hTech);
- 				UINT passCont;
- 				pLightingEffect->Begin(&passCont, NULL);
- 				for (UINT i = 0; i < passCont; i++)
- 				{
- 					pLightingEffect->BeginPass(i);
-	#if !SOFTWARE_SKINNED
- 					m_soldier.Render();
-	#else
-					m_drone.Render();
-	#endif
- 					pLightingEffect->EndPass();
- 				}
- 				pLightingEffect->End();
- 
- 				pShadowEffect->SetMatrix("matShadow", &shadow);
- 				pShadowEffect->SetMatrix("matVP", &(view * proj));
- 				hTech = pShadowEffect->GetTechniqueByName("Shadow");
- 				pShadowEffect->SetTechnique(hTech);
- 				pShadowEffect->Begin(&passCont, NULL);
- 				for (UINT i = 0; i < passCont; i++)
- 				{
- 					pShadowEffect->BeginPass(i);
-	#if !SOFTWARE_SKINNED
- 					m_soldier.Render();
-	#else
-					m_drone.Render();
-	#endif
- 					pShadowEffect->EndPass();
- 				}
-				pShadowEffect->End();
-#else
-				m_drone.Render();
-#endif
-
-#if RENDER_SKELETON
-				//骨骼渲染
-				pD3DDevice->SetTransform(D3DTS_VIEW, &view);
-				pD3DDevice->SetTransform(D3DTS_PROJECTION, &proj);
-				m_drone.RenderSkeleton(world);
-#endif
+				//m_soldier.Render(&world, &view, &proj, &lightPos, &lightColor, &shadow);
+				m_drone.Render(&world, &view, &proj, &lightPos, &lightColor, &shadow);
+				//m_drone.RenderSkeleton(&world, &view, &proj);
 				pD3DDevice->EndScene();
 				pD3DDevice->Present(NULL, NULL, NULL, NULL);
 			}

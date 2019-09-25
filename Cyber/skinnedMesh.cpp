@@ -11,10 +11,51 @@ SkinnedMesh::~SkinnedMesh()
 {
 	BoneHierarchyLoader boneHierarchy;
 	boneHierarchy.DestroyFrame(m_pRootBone);
+	if (pLightingEffect != NULL)
+		pLightingEffect->Release();
+	if (pShadowEffect != NULL)
+		pShadowEffect->Release();
 }
 
-void SkinnedMesh::Load(const char fileName[])
+HRESULT SkinnedMesh::Load(const char fileName[], const char lightingEffectFileName[], const char shadowEffectFileName[])
 {
+	//加载shader文件
+	ID3DXBuffer *pErrorMsgs = NULL;
+	char *effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, lightingEffectFileName);
+	HRESULT hRes = D3DXCreateEffectFromFile(
+		pD3DDevice,
+		effectFileName,
+		NULL,
+		NULL,
+		D3DXSHADER_DEBUG,
+		NULL,
+		&pLightingEffect,
+		&pErrorMsgs);
+	delete[]effectFileName;
+	if (FAILED(hRes) && (pErrorMsgs != NULL))
+	{
+		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Lighting Effect Error", MB_OK);		//MB_OK是啥？
+		return E_FAIL;
+	}
+
+	effectFileName = global::CombineStr(ROOT_PATH_TO_EFFECT, shadowEffectFileName);
+	hRes = D3DXCreateEffectFromFile(
+		pD3DDevice,
+		effectFileName,
+		NULL,
+		NULL,
+		D3DXSHADER_DEBUG,
+		NULL,
+		&pShadowEffect,
+		&pErrorMsgs);
+	delete[]effectFileName;
+	if (FAILED(hRes) && (pErrorMsgs != NULL))
+	{
+		MessageBox(NULL, (char*)pErrorMsgs->GetBufferPointer(), "Load Shadow Effect Error", MB_OK);		//MB_OK是啥？
+		return E_FAIL;
+	}
+
+	//加载网格
 	BoneHierarchyLoader boneHierarchyLoader;
 	D3DXLoadMeshHierarchyFromX(fileName, D3DXMESH_MANAGED, pD3DDevice, &boneHierarchyLoader,
 								NULL, (LPD3DXFRAME*)&m_pRootBone, NULL);
@@ -90,11 +131,39 @@ struct VERTEX
 	static const DWORD FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE;
 };
 
-void SkinnedMesh::Render(Bone *curBone)
+void SkinnedMesh::Render(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
 {
-	if (curBone == NULL)		//第一层调用会
-		curBone = m_pRootBone;
+	pLightingEffect->SetMatrix("matW", world);
+	pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
+	pLightingEffect->SetVector("lightPos", lightPos);
+	pLightingEffect->SetVector("lightColor", lightColor);
+	D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
+	pLightingEffect->SetTechnique(hTech);
+	UINT passCont;
+	pLightingEffect->Begin(&passCont, NULL);
+	for (UINT i = 0; i < passCont; i++)
+	{
+		pLightingEffect->BeginPass(i);
+		RealRender(m_pRootBone);
+		pLightingEffect->EndPass();
+	}
+	pLightingEffect->End();
 
+	pShadowEffect->SetMatrix("matShadow", shadow);
+	pShadowEffect->SetMatrix("matVP", &((*view) * (*proj)));
+	hTech = pShadowEffect->GetTechniqueByName("Shadow");
+	pShadowEffect->SetTechnique(hTech);
+	pShadowEffect->Begin(&passCont, NULL);
+	for (UINT i = 0; i < passCont; i++)
+	{
+		pShadowEffect->BeginPass(i);
+		pShadowEffect->EndPass();
+	}
+	pShadowEffect->End();
+}
+
+void SkinnedMesh::RealRender(Bone *curBone)
+{
 	if (curBone->pMeshContainer != NULL)
 	{
 		BoneMesh *boneMesh = (BoneMesh*)curBone->pMeshContainer;
@@ -137,24 +206,28 @@ void SkinnedMesh::Render(Bone *curBone)
 	}
 
 	if (curBone->pFrameSibling != NULL)
-		Render((Bone*)curBone->pFrameSibling);
+		RealRender((Bone*)curBone->pFrameSibling);
 	if (curBone->pFrameFirstChild != NULL)
-		Render((Bone*)curBone->pFrameFirstChild);
+		RealRender((Bone*)curBone->pFrameFirstChild);
 }
 
- void SkinnedMesh::RenderSkeleton(D3DXMATRIX world, Bone* curBone, Bone* parentBone)
+void SkinnedMesh::RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj)
 {
-	//第一次调用时，curBone和parent都是NULL
-	if (curBone == NULL)
-		curBone = m_pRootBone;
+	pD3DDevice->SetTransform(D3DTS_VIEW, view);
+	pD3DDevice->SetTransform(D3DTS_PROJECTION, proj);
+	RealRenderSkeleton(world, m_pRootBone);
+}
 
+ void SkinnedMesh::RealRenderSkeleton(D3DXMATRIX *world, Bone* curBone, Bone* parentBone)
+{
+	//第一层调用时，parent是NULL
 	if (parentBone != NULL)
 	{
 		if (curBone->Name && parentBone->Name)
 		{
 			//在当前骨骼位置绘制一个球
 			pD3DDevice->SetRenderState(D3DRS_LIGHTING, true);
-			pD3DDevice->SetTransform(D3DTS_WORLD, &(curBone->matrixOfbone2Model * world));
+			pD3DDevice->SetTransform(D3DTS_WORLD, &(curBone->matrixOfbone2Model * (*world)));
 			m_pSphereMesh->DrawSubset(0);
 
 			//绘制骨骼间的连线
@@ -167,7 +240,7 @@ void SkinnedMesh::Render(Bone *curBone)
 			if (D3DXVec3Length(&(curBonePos - parentBonePos)) < 2.0f)
 			{
 				VERTEX vert[] = { VERTEX(parentBonePos, 0xffff0000), VERTEX(curBonePos, 0xff00ff00) };
-				pD3DDevice->SetTransform(D3DTS_WORLD, &world);
+				pD3DDevice->SetTransform(D3DTS_WORLD, world);
 				pD3DDevice->SetRenderState(D3DRS_LIGHTING, false);
 				pD3DDevice->SetFVF(VERTEX::FVF);
 				pD3DDevice->DrawPrimitiveUP(D3DPT_LINESTRIP, 1, vert, sizeof(VERTEX));
@@ -176,7 +249,19 @@ void SkinnedMesh::Render(Bone *curBone)
 	}
 
 	if (curBone->pFrameSibling)
-		RenderSkeleton(world, (Bone*)curBone->pFrameSibling, parentBone);
+		RealRenderSkeleton(world, (Bone*)curBone->pFrameSibling, parentBone);
 	if (curBone->pFrameFirstChild)
-		RenderSkeleton(world, (Bone*)curBone->pFrameFirstChild, curBone);
+		RealRenderSkeleton(world, (Bone*)curBone->pFrameFirstChild, curBone);
 }
+
+ void SkinnedMesh::OnLostDevice()
+ {
+	 pLightingEffect->OnLostDevice();
+	 pShadowEffect->OnLostDevice();
+ }
+
+ void SkinnedMesh::OnResetDevice()
+ {
+	 pLightingEffect->OnResetDevice();
+	 pShadowEffect->OnResetDevice();
+ }

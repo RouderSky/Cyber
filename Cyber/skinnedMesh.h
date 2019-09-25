@@ -11,9 +11,13 @@ class SkinnedMesh
 public:
 	SkinnedMesh();
 	~SkinnedMesh();
-	void Load(const char fileName[]);
-	void Render(Bone *curBone = NULL);
-	void RenderSkeleton(D3DXMATRIX world, Bone* curBone = NULL, Bone* parent = NULL);
+	HRESULT Load(const char fileName[], const char lightingEffectFileName[], const char shadowEffectFileName[]);
+	void Render(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
+	void RealRender(Bone *curBone);
+	void RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj);
+	void RealRenderSkeleton(D3DXMATRIX *world, Bone* curBone, Bone* parent = NULL);
+	void OnLostDevice();
+	void OnResetDevice();
 
 private:
 	void SaveMatrixsOfBone2Model2Container(Bone *bone);
@@ -21,6 +25,8 @@ private:
 
 	Bone *m_pRootBone;
 	LPD3DXMESH m_pSphereMesh;
+	ID3DXEffect *pLightingEffect;
+	ID3DXEffect *pShadowEffect;
 };
 
 #endif
