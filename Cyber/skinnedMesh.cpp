@@ -108,7 +108,8 @@ void SkinnedMesh::Render(Bone *curBone)
 					&boneMesh->matrixsOfModel2Bone[i],
 					boneMesh->matrixsOfBone2Model[i]);
 
-			//蒙皮
+#if SOFTWARE_SKINNED
+			//应用矩阵调色板并蒙皮
 			BYTE *src = NULL, *dest = NULL;
 			boneMesh->originalMesh->LockVertexBuffer(D3DLOCK_READONLY, (VOID**)&src);
 			boneMesh->originalMesh->UnlockVertexBuffer();
@@ -124,6 +125,14 @@ void SkinnedMesh::Render(Bone *curBone)
 				pD3DDevice->SetTexture(0, boneMesh->textures[attribId]);
 				boneMesh->MeshData.pMesh->DrawSubset(attribId);
 			}
+#endif
+
+#if HARDWARE_SKINNED
+			//交给shader来应用矩阵调色板并蒙皮
+			pLightingEffect->SetMatrixArray("MatrixPalette", boneMesh->matrixPalette, boneMesh->pSkinInfo->GetNumBones());
+			//todo:绘制
+
+#endif
 		}
 	}
 

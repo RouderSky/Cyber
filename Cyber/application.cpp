@@ -3,8 +3,10 @@
 IDirect3DDevice9 *pD3DDevice = NULL;
 ID3DXSprite *pSprite = NULL;
 ID3DXFont *pText = NULL;
+//感觉shader不用作为全局变量
 ID3DXEffect *pLightingEffect = NULL;
 ID3DXEffect *pShadowEffect = NULL;
+//////////////////////////////////////////
 ofstream streanOfDebug("debug.txt");
 
 Application::Application()
@@ -300,7 +302,7 @@ void Application::Update(float deltaTime)
 		//自定义逻辑
 		m_angle += deltaTime;
 	}
-	catch (...)		//... 这是什么语法？
+	catch (...)		//这是什么语法？
 	{
 		streanOfDebug << "Error in Application::Update() \n";
 	}
@@ -335,11 +337,12 @@ void Application::Render()
 			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);
 			if (SUCCEEDED(pD3DDevice->BeginScene()))
 			{
-#if 1
+				//我觉得不应该在这里设置渲染状态，应该放到各个render函数里面，每个Mesh应该拥有自己得shader实例，有空改掉...
  				pLightingEffect->SetMatrix("matW", &world);
  				pLightingEffect->SetMatrix("matVP", &(view * proj));
  				pLightingEffect->SetVector("lightPos", &lightPos);
  				pLightingEffect->SetVector("lightColor", &lightColor);
+#if !HARDWARE_SKINNED
  				D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
  				pLightingEffect->SetTechnique(hTech);
  				UINT passCont;
@@ -347,11 +350,11 @@ void Application::Render()
  				for (UINT i = 0; i < passCont; i++)
  				{
  					pLightingEffect->BeginPass(i);
-#if 0
- 					//m_soldier.Render();
-#else
+	#if !SOFTWARE_SKINNED
+ 					m_soldier.Render();
+	#else
 					m_drone.Render();
-#endif
+	#endif
  					pLightingEffect->EndPass();
  				}
  				pLightingEffect->End();
@@ -364,16 +367,19 @@ void Application::Render()
  				for (UINT i = 0; i < passCont; i++)
  				{
  					pShadowEffect->BeginPass(i);
-#if 0
- 					//m_soldier.Render();
-#else
+	#if !SOFTWARE_SKINNED
+ 					m_soldier.Render();
+	#else
 					m_drone.Render();
-#endif
+	#endif
  					pShadowEffect->EndPass();
  				}
- 				pShadowEffect->End();
+				pShadowEffect->End();
+#else
+				m_drone.Render();
 #endif
-#if 0
+
+#if RENDER_SKELETON
 				//骨骼渲染
 				pD3DDevice->SetTransform(D3DTS_VIEW, &view);
 				pD3DDevice->SetTransform(D3DTS_PROJECTION, &proj);

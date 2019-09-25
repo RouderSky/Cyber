@@ -63,9 +63,31 @@ HRESULT BoneHierarchyLoader::CreateMeshContainer(
 		boneMesh->pSkinInfo = pSkinInfo;
 		pSkinInfo->AddRef();			//通过一级指针获得的内容由D3D管理，通过二级指针获得的内容自己管理？内容由D3D管理时想要长期时候就要AddRef？
 
+#if SOFTWARE_SKINNED	//软件蒙皮
 		//复制一份网格数据
 		pMeshData->pMesh->CloneMeshFVF(D3DXMESH_MANAGED, pMeshData->pMesh->GetFVF(),
 			pD3DDevice, &boneMesh->MeshData.pMesh);
+#endif
+#if HARDWARE_SKINNED	//硬件蒙皮
+		DWORD maxVertInfluences = 0;
+		DWORD numBoneComboEntries = 0;
+		ID3DXBuffer* boneComboTable = 0;
+		//将蒙皮信息更新到顶点
+		pSkinInfo->ConvertToIndexedBlendedMesh(
+			pMeshData->pMesh,
+			D3DXMESH_MANAGED | D3DXMESH_WRITEONLY,
+			30,
+			NULL,
+			NULL,
+			NULL,
+			NULL,
+			&maxVertInfluences,
+			&numBoneComboEntries,
+			&boneComboTable,
+			&boneMesh->MeshData.pMesh);			//这些参数是啥意思？boneComboTable是蒙皮矩阵吧？
+		if (boneComboTable != NULL)
+			boneComboTable->Release();
+#endif
 
 		//保存属性表  改过
 		pMeshData->pMesh->GetAttributeTable(NULL, &boneMesh->numAttributeGroups);
