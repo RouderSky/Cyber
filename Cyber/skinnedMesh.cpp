@@ -219,6 +219,14 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 		BoneMesh *boneMesh = (BoneMesh*)curBone->pMeshContainer;
 		if (boneMesh->pSkinInfo != NULL)		//如果有顶点蒙皮信息
 		{
+			int numBones = boneMesh->pSkinInfo->GetNumBones();
+			//计算矩阵调色板
+			for (int i = 0; i < numBones; i++)
+				D3DXMatrixMultiply(
+					&boneMesh->matrixPalette[i],
+					&boneMesh->matrixsOfModel2Bone[i],
+					boneMesh->matrixsOfBone2Model[i]);
+
 			//交给shader来应用矩阵调色板并蒙皮
 
 			pLightingEffect->SetMatrixArray("MatrixPalette", boneMesh->matrixPalette, boneMesh->pSkinInfo->GetNumBones());

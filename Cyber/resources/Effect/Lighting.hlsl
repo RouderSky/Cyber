@@ -59,15 +59,30 @@ technique NormalLighting
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+
 extern float4x4 MatrixPaletts[35];		//这里必须用extern？ConvertToIndexedBlendedMesh哪里设置的是30，这两应该要保持同步吧？
 extern int numBoneInfluences = 2;
 
 struct VS_INPUT_SKIN
 {
 	float4 position : POSITION0;
+	float3 normal : NORMAL;
+	float2 tex0 : TEXCOORD0;
+	float4 weights : BLENDWEIGHT0;
+	int4 boneIndices : BLENDINDICES0;
 };
 
-technique skinningandlighting
+VS_OUTPUT vs_Skinning(VS_INPUT_SKIN IN)
+{
+	VS_OUTPUT OUT = (VS_OUTPUT)0;
+
+	float4 p = float4(0.0f, 0.0f, 0.0f, 1.0f);
+	float3 norm = float3(0.0f, 0.0f, 0.0f);
+	float lastWeight = 0.0f;
+	int n = numBone
+}
+
+technique SkinningAndLighting
 {
 	pass p0
 	{
