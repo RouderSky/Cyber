@@ -220,7 +220,7 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 		if (boneMesh->pSkinInfo != NULL)		//如果有顶点蒙皮信息
 		{
 			int numBones = boneMesh->pSkinInfo->GetNumBones();
-			//计算矩阵调色板
+			//计算矩阵调色板   计算矩阵调色板这段代码拿出来...
 			for (int i = 0; i < numBones; i++)
 				D3DXMatrixMultiply(
 					&boneMesh->matrixPalette[i],
