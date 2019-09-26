@@ -12,8 +12,10 @@ public:
 	SkinnedMesh();
 	~SkinnedMesh();
 	HRESULT Load(const char fileName[], const char lightingEffectFileName[], const char shadowEffectFileName[]);
-	void Render(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
-	void RealRender(Bone *curBone);
+	void SoftRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
+	void RealSoftRender(Bone *curBone);
+	void HardRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
+	void RealHardRender(Bone *curBone);
 	void RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj);
 	void RealRenderSkeleton(D3DXMATRIX *world, Bone* curBone, Bone* parent = NULL);
 	void OnLostDevice();

@@ -131,7 +131,7 @@ struct VERTEX
 	static const DWORD FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE;
 };
 
-void SkinnedMesh::Render(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
+void SkinnedMesh::SoftRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
 {
 	pLightingEffect->SetMatrix("matW", world);
 	pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
@@ -144,7 +144,7 @@ void SkinnedMesh::Render(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, 
 	for (UINT i = 0; i < passCont; i++)
 	{
 		pLightingEffect->BeginPass(i);
-		RealRender(m_pRootBone);
+		RealSoftRender(m_pRootBone);
 		pLightingEffect->EndPass();
 	}
 	pLightingEffect->End();
@@ -157,12 +157,13 @@ void SkinnedMesh::Render(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, 
 	for (UINT i = 0; i < passCont; i++)
 	{
 		pShadowEffect->BeginPass(i);
+		RealSoftRender(m_pRootBone);
 		pShadowEffect->EndPass();
 	}
 	pShadowEffect->End();
 }
 
-void SkinnedMesh::RealRender(Bone *curBone)
+void SkinnedMesh::RealSoftRender(Bone *curBone)
 {
 	if (curBone->pMeshContainer != NULL)
 	{
@@ -177,7 +178,6 @@ void SkinnedMesh::RealRender(Bone *curBone)
 					&boneMesh->matrixsOfModel2Bone[i],
 					boneMesh->matrixsOfBone2Model[i]);
 
-#if SOFTWARE_SKINNED
 			//应用矩阵调色板并蒙皮
 			BYTE *src = NULL, *dest = NULL;
 			boneMesh->originalMesh->LockVertexBuffer(D3DLOCK_READONLY, (VOID**)&src);
@@ -189,26 +189,68 @@ void SkinnedMesh::RealRender(Bone *curBone)
 			//绘制网格
 			for (int i = 0; i < (int)boneMesh->numAttributeGroups; i++)
 			{
-				int attribId = boneMesh->attributeTable[i].AttribId;
-				pD3DDevice->SetMaterial(&(boneMesh->materials[attribId]));
-				pD3DDevice->SetTexture(0, boneMesh->textures[attribId]);
+				int attribId = boneMesh->attributeTable[i].AttribId;		//用AttribId不太准确吧？
+				//pD3DDevice->SetMaterial(&(boneMesh->materials[attribId]));
+				pD3DDevice->SetTexture(0, boneMesh->textures[attribId]);	//这样设置一下，shader中的纹理采样器就可以使用这个纹理了，应该是纹理序号对应上了？一旦effect Begin了，就只能这么设置了？
 				boneMesh->MeshData.pMesh->DrawSubset(attribId);
 			}
-#endif
-
-#if HARDWARE_SKINNED
-			//交给shader来应用矩阵调色板并蒙皮
-			pLightingEffect->SetMatrixArray("MatrixPalette", boneMesh->matrixPalette, boneMesh->pSkinInfo->GetNumBones());
-			//todo:绘制
-
-#endif
 		}
 	}
 
 	if (curBone->pFrameSibling != NULL)
-		RealRender((Bone*)curBone->pFrameSibling);
+		RealSoftRender((Bone*)curBone->pFrameSibling);
 	if (curBone->pFrameFirstChild != NULL)
-		RealRender((Bone*)curBone->pFrameFirstChild);
+		RealSoftRender((Bone*)curBone->pFrameFirstChild);
+}
+
+void SkinnedMesh::HardRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
+{
+	pLightingEffect->SetMatrix("matW", world);
+	pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
+	pLightingEffect->SetVector("lightPos", lightPos);
+	pLightingEffect->SetVector("lightColor", lightColor);
+	RealHardRender(m_pRootBone);
+}
+
+void SkinnedMesh::RealHardRender(Bone *curBone)
+{
+	if (curBone->pMeshContainer != NULL)
+	{
+		BoneMesh *boneMesh = (BoneMesh*)curBone->pMeshContainer;
+		if (boneMesh->pSkinInfo != NULL)		//如果有顶点蒙皮信息
+		{
+			//交给shader来应用矩阵调色板并蒙皮
+
+			pLightingEffect->SetMatrixArray("MatrixPalette", boneMesh->matrixPalette, boneMesh->pSkinInfo->GetNumBones());
+
+			for (int i = 0; i < (int)boneMesh->numAttributeGroups; i++)
+			{
+				int attribId = boneMesh->attributeTable[i].AttribId;
+				//pD3DDevice->SetMaterial(&(boneMesh->materials[attribId]));
+				pLightingEffect->SetTexture("texDiffuse", boneMesh->textures[attribId]);		//尝试下使用pD3DDevice->SetTexture(0, boneMesh->textures[attribId])，应该是可以的
+				D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("SkinningAndLighting");
+				pLightingEffect->SetTechnique(hTech);
+				UINT passCount;
+				pLightingEffect->Begin(&passCount, NULL);
+				for (UINT i = 0; i < passCount; i++)
+				{
+					pLightingEffect->BeginPass(i);
+					boneMesh->MeshData.pMesh->DrawSubset(attribId);
+					pLightingEffect->EndPass();
+				}
+				pLightingEffect->End();
+			}
+		}
+		else
+		{
+			//todo:
+		}
+	}
+
+	if (curBone->pFrameSibling != NULL)
+		RealHardRender((Bone*)curBone->pFrameSibling);
+	if (curBone->pFrameFirstChild != NULL)
+		RealHardRender((Bone*)curBone->pFrameFirstChild);
 }
 
 void SkinnedMesh::RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj)

@@ -3,7 +3,7 @@ matrix matVP;
 
 float4 lightColor;
 float3 lightPos;
-texture texDiffuse;
+texture texDiffuse;		
 
 sampler DiffuseSampler = sampler_state
 {
@@ -24,7 +24,7 @@ struct VS_OUTPUT
 {
 	float4 position : POSITION0;
 	float2 tex0 : TEXCOORD0;
-	float shade : TEXCOORD1;
+	float4 shade : COLOR0;		//原本使用的TEXCOORD0是不对的吧？
 };
 
 VS_OUTPUT vs(VS_INPUT IN)
@@ -36,7 +36,7 @@ VS_OUTPUT vs(VS_INPUT IN)
 
 	OUT.position = mul(posWorld, matVP);
 	OUT.tex0 = IN.tex0;
-	OUT.shade = max(dot(normal, normalize(lightPos - posWorld)), 0.2f);
+	OUT.shade = max(dot(normal, normalize(lightPos - posWorld)), 0.2f) * lightColor;
 
 	return OUT;
 }
@@ -44,7 +44,7 @@ VS_OUTPUT vs(VS_INPUT IN)
 float4 ps(VS_OUTPUT IN) : COLOR0
 {
 	float4 diffuseColor = tex2D(DiffuseSampler, IN.tex0);
-	return IN.shade * lightColor * diffuseColor;
+	return IN.shade * diffuseColor;
 }
 
 technique NormalLighting
@@ -56,3 +56,21 @@ technique NormalLighting
 		PixelShader = compile ps_2_0 ps();
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+extern float4x4 MatrixPaletts[35];		//这里必须用extern？ConvertToIndexedBlendedMesh哪里设置的是30，这两应该要保持同步吧？
+extern int numBoneInfluences = 2;
+
+struct VS_INPUT_SKIN
+{
+	float4 position : POSITION0;
+};
+
+technique skinningandlighting
+{
+	pass p0
+	{
+
+	};
+};
