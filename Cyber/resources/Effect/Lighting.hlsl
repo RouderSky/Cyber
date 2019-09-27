@@ -78,7 +78,7 @@ VS_OUTPUT vs_SkinningAndLighting(VS_INPUT_SKIN IN)
 
 	float4 modelPos = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	float3 normal = float3(0.0f, 0.0f, 0.0f);
-	
+
 	////////////////////////////////////////////////////////////////
 	//对单个顶点进行蒙皮
 	IN.normal = normalize(IN.normal);
@@ -96,15 +96,15 @@ VS_OUTPUT vs_SkinningAndLighting(VS_INPUT_SKIN IN)
 	//可以这么做的前提是每个顶点的蒙皮权重之和为1，只要法线已经单位化，blend后的法线也是单位化的
 	//我觉得不是很准确，应该直接blend所有的矩阵，然后再将法线单位化
 	float leftWeight = 1.0 - hadUsedWeight;
-	modelPos += leftWeight * mul(IN.position, MatrixPalette[lastIndex]);
+	modelPos += leftWeight * mul(IN.position, MatrixPalette[IN.boneIndices[lastIndex]]);
 	modelPos.w = 1.0f;
-	normal += leftWeight * mul(IN.normal, MatrixPalette[lastIndex]);
+	normal += leftWeight * mul(IN.normal, MatrixPalette[IN.boneIndices[lastIndex]]);
 	////////////////////////////////////////////////////////////////
 
 	//顶点空间变换
 	float4 worldPos = mul(modelPos, matW);
 	OUT.position = mul(worldPos, matVP);
-	
+
 	//计算漫反射
 	normal = normalize(normal);
 	normal = mul(normal, matW);		//处理法线真粗暴
