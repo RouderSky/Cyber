@@ -1,2 +1,0 @@
-Applocation Started 
-Application Terminated 

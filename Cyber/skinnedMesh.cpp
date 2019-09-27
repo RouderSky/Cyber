@@ -191,7 +191,7 @@ void SkinnedMesh::RealSoftRender(Bone *curBone)
 			{
 				int attribId = boneMesh->attributeTable[i].AttribId;		//用AttribId不太准确吧？
 				//pD3DDevice->SetMaterial(&(boneMesh->materials[attribId]));
-				pD3DDevice->SetTexture(0, boneMesh->textures[attribId]);	//这样设置一下，shader中的纹理采样器就可以使用这个纹理了，应该是纹理序号对应上了？一旦effect Begin了，就只能这么设置了？
+				pD3DDevice->SetTexture(0, boneMesh->textures[attribId]);	//这样设置一下，shader中的纹理采样器就可以使用这个纹理了，应该是纹理序号对应上了？effect Begin后只能用pD3DDevice->SetTexture，不可用pLightingEffect->SetTexture
 				boneMesh->MeshData.pMesh->DrawSubset(attribId);
 			}
 		}
@@ -220,7 +220,6 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 		if (boneMesh->pSkinInfo != NULL)		//如果有顶点蒙皮信息
 		{
 			int numBones = boneMesh->pSkinInfo->GetNumBones();
-			//计算矩阵调色板   计算矩阵调色板这段代码拿出来...
 			for (int i = 0; i < numBones; i++)
 				D3DXMatrixMultiply(
 					&boneMesh->matrixPalette[i],
@@ -235,7 +234,7 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 			{
 				int attribId = boneMesh->attributeTable[i].AttribId;
 				//pD3DDevice->SetMaterial(&(boneMesh->materials[attribId]));
-				pLightingEffect->SetTexture("texDiffuse", boneMesh->textures[attribId]);		//尝试下使用pD3DDevice->SetTexture(0, boneMesh->textures[attribId])，应该是可以的
+				pLightingEffect->SetTexture("texDiffuse", boneMesh->textures[attribId]);		//effect Begin后只能用pLightingEffect->SetTexture，不可用pD3DDevice->SetTexture
 				D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("SkinningAndLighting");
 				pLightingEffect->SetTechnique(hTech);
 				UINT passCount;

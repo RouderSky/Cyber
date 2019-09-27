@@ -105,7 +105,7 @@ HRESULT BoneHierarchyLoader::CreateMeshContainer(
 	}
 	else
 	{
-		boneMesh->MeshData.pMesh = pMeshData->pMesh;
+		//boneMesh->MeshData.pMesh = pMeshData->pMesh;		//û�õİɣ�
 	}
 
 	*ppNewMeshContainer = boneMesh;
