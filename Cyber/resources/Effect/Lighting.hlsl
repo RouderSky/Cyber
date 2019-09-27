@@ -83,7 +83,6 @@ VS_OUTPUT vs_SkinningAndLighting(VS_INPUT_SKIN IN)
 	//对单个顶点进行蒙皮
 	IN.normal = normalize(IN.normal);
 	int lastIndex = numBoneInfluences - 1;
-	
 	float hadUsedWeight = 0.0f;
 	for (int i = 0; i < lastIndex; ++i)	//略去了最后一个
 	{
