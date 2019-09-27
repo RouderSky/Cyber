@@ -133,6 +133,7 @@ struct VERTEX
 
 void SkinnedMesh::SoftRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
 {
+	//模型绘制
 	pLightingEffect->SetMatrix("matW", world);
 	pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
 	pLightingEffect->SetVector("lightPos", lightPos);
@@ -149,6 +150,7 @@ void SkinnedMesh::SoftRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *pr
 	}
 	pLightingEffect->End();
 
+	//阴影绘制
 	pShadowEffect->SetMatrix("matShadow", shadow);
 	pShadowEffect->SetMatrix("matVP", &((*view) * (*proj)));
 	hTech = pShadowEffect->GetTechniqueByName("Shadow");
@@ -170,8 +172,8 @@ void SkinnedMesh::RealSoftRender(Bone *curBone)
 		BoneMesh *boneMesh = (BoneMesh*)curBone->pMeshContainer;
 		if (boneMesh->pSkinInfo != NULL)		//如果有顶点蒙皮信息
 		{
-			int numBones = boneMesh->pSkinInfo->GetNumBones();
 			//计算矩阵调色板
+			int numBones = boneMesh->pSkinInfo->GetNumBones();
 			for (int i = 0; i < numBones; i++)
 				D3DXMatrixMultiply(
 					&boneMesh->matrixPalette[i],
@@ -186,12 +188,12 @@ void SkinnedMesh::RealSoftRender(Bone *curBone)
 			boneMesh->MeshData.pMesh->UnlockVertexBuffer();
 			boneMesh->pSkinInfo->UpdateSkinnedMesh(boneMesh->matrixPalette, NULL, src, dest);
 			
-			//绘制网格
+			//绘制所有子网格
 			for (int i = 0; i < (int)boneMesh->numAttributeGroups; i++)
 			{
 				int attribId = boneMesh->attributeTable[i].AttribId;		//用AttribId不太准确吧？
-				//pD3DDevice->SetMaterial(&(boneMesh->materials[attribId]));
-				pD3DDevice->SetTexture(0, boneMesh->textures[attribId]);	//这样设置一下，shader中的纹理采样器就可以使用这个纹理了，应该是纹理序号对应上了？effect Begin后只能用pD3DDevice->SetTexture，不可用pLightingEffect->SetTexture
+				pD3DDevice->SetMaterial(&(boneMesh->materials[attribId]));
+				pD3DDevice->SetTexture(0, boneMesh->textures[attribId]);	//这样设置一下，shader中的纹理采样器就可以使用这个纹理了，应该是纹理序号对应上了？effect Begin之后只能用pD3DDevice->SetTexture，不可用pLightingEffect->SetTexture？
 				boneMesh->MeshData.pMesh->DrawSubset(attribId);
 			}
 		}
@@ -219,6 +221,7 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 		BoneMesh *boneMesh = (BoneMesh*)curBone->pMeshContainer;
 		if (boneMesh->pSkinInfo != NULL)		//如果有顶点蒙皮信息
 		{
+			//计算矩阵调色板
 			int numBones = boneMesh->pSkinInfo->GetNumBones();
 			for (int i = 0; i < numBones; i++)
 				D3DXMatrixMultiply(
@@ -226,17 +229,18 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 					&boneMesh->matrixsOfModel2Bone[i],
 					boneMesh->matrixsOfBone2Model[i]);
 
-			//交给shader来应用矩阵调色板并蒙皮
-
+			//设置好Shader
 			pLightingEffect->SetMatrixArray("MatrixPalette", boneMesh->matrixPalette, boneMesh->pSkinInfo->GetNumBones());
+			D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("SkinningAndLighting");		//交给shader来应用矩阵调色板并蒙皮
+			pLightingEffect->SetTechnique(hTech);
 
+			//绘制所有子网格
 			for (int i = 0; i < (int)boneMesh->numAttributeGroups; i++)
 			{
-				int attribId = boneMesh->attributeTable[i].AttribId;
-				//pD3DDevice->SetMaterial(&(boneMesh->materials[attribId]));
-				pLightingEffect->SetTexture("texDiffuse", boneMesh->textures[attribId]);		//effect Begin后只能用pLightingEffect->SetTexture，不可用pD3DDevice->SetTexture
-				D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("SkinningAndLighting");
-				pLightingEffect->SetTechnique(hTech);
+				int attribId = boneMesh->attributeTable[i].AttribId;		//用AttribId不太准确吧？
+				pD3DDevice->SetMaterial(&(boneMesh->materials[attribId]));
+				pLightingEffect->SetTexture("texDiffuse", boneMesh->textures[attribId]);		//effect Begin之前只能用pLightingEffect->SetTexture，不可用pD3DDevice->SetTexture？
+
 				UINT passCount;
 				pLightingEffect->Begin(&passCount, NULL);
 				for (UINT i = 0; i < passCount; i++)
@@ -250,7 +254,29 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 		}
 		else
 		{
-			//todo:
+			//设置好Shader
+			pLightingEffect->SetMatrix("matW", &curBone->matrixOfbone2Model);	//顶点蒙皮也用这个矩阵，直接改了会有问题吧？
+																				//而且这个矩阵只是变换到模型空间，没有去到世界空间吧，应该乘上world矩阵再设置进去吧？
+																				//有蒙皮信息的网格的顶点是在骨骼空间，而不是模型空间的？
+			D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
+			pLightingEffect->SetTechnique(hTech);
+
+			//绘制所有子网格
+			for (int i = 0; i < (int)boneMesh->materials.size(); i++)		//试试看能不能用boneMesh->numAttributeGroups
+			{
+				pD3DDevice->SetMaterial(&boneMesh->materials[i]);
+				pLightingEffect->SetTexture("texDiffuse", boneMesh->textures[i]);
+
+				UINT passCount;
+				pLightingEffect->Begin(&passCount, NULL);
+				for (UINT i = 0; i < passCount; i++)
+				{
+					pLightingEffect->BeginPass(i);
+					boneMesh->originalMesh->DrawSubset(i);
+					pLightingEffect->EndPass();
+				}
+				pLightingEffect->End();
+			}
 		}
 	}
 
