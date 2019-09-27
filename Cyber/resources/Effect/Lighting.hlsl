@@ -59,7 +59,6 @@ technique NormalLighting
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-
 extern float4x4 MatrixPalette[35];		//这里必须用extern？ConvertToIndexedBlendedMesh哪里设置的是30，这两应该要保持同步吧？
 extern int numBoneInfluences = 2;
 
