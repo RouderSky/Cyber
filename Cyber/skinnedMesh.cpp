@@ -60,10 +60,8 @@ HRESULT SkinnedMesh::Load(const char fileName[], const char lightingEffectFileNa
 	D3DXLoadMeshHierarchyFromX(fileName, D3DXMESH_MANAGED, pD3DDevice, &boneHierarchyLoader,
 								NULL, (LPD3DXFRAME*)&m_pRootBone, NULL);
 
-	//将根骨骼设置到模型空间原点
-	D3DXMATRIX i;
-	D3DXMatrixIdentity(&i);
-	UpdateMatrixOfBone2Model(m_pRootBone, &i);
+
+	UpdateMatrixOfBone2Model(m_pRootBone);
 
 	SaveMatrixsOfBone2Model2Container(m_pRootBone);			//改过
 
@@ -103,6 +101,13 @@ void SkinnedMesh::UpdateMatrixOfBone2Model(Bone* bone, D3DXMATRIX *parentMatrix)
 {
 	if (bone == NULL)
 		return;
+
+	if (parentMatrix == NULL)
+	{
+		D3DXMATRIX i;
+		D3DXMatrixIdentity(&i);
+		parentMatrix = &i;
+	}
 
 	D3DXMatrixMultiply(
 		&bone->matrixOfbone2Model,

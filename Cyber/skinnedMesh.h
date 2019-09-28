@@ -23,7 +23,8 @@ public:
 
 private:
 	void SaveMatrixsOfBone2Model2Container(Bone *bone);
-	void UpdateMatrixOfBone2Model(Bone* bone, D3DXMATRIX* parentMatrix);
+	//¸üÐÂPose
+	void UpdateMatrixOfBone2Model(Bone* bone, D3DXMATRIX* parentMatrix = NULL);
 
 	Bone *m_pRootBone;
 	LPD3DXMESH m_pSphereMesh;
