@@ -35,9 +35,16 @@ HRESULT BoneHierarchyLoader::CreateMeshContainer(
 	BoneMesh *boneMesh = new BoneMesh;
 	memset(boneMesh, 0, sizeof(BoneMesh));
 
+	//保存原网格信息
 	pMeshData->pMesh->AddRef();
 	boneMesh->originalMesh = pMeshData->pMesh;
 	boneMesh->MeshData.Type = pMeshData->Type;
+
+	//保存属性表
+	//这个没有蒙皮信息的时候也可以保存吧？
+	pMeshData->pMesh->GetAttributeTable(NULL, &boneMesh->numAttributeGroups);
+	boneMesh->attributeTable = new D3DXATTRIBUTERANGE[boneMesh->numAttributeGroups];
+	pMeshData->pMesh->GetAttributeTable(boneMesh->attributeTable, NULL);
 
 	for (int i = 0; i < (int)NumMaterials; i++)
 	{
@@ -63,16 +70,16 @@ HRESULT BoneHierarchyLoader::CreateMeshContainer(
 		boneMesh->pSkinInfo = pSkinInfo;
 		pSkinInfo->AddRef();			//通过一级指针获得的内容由D3D管理，通过二级指针获得的内容自己管理？内容由D3D管理时想要长期时候就要AddRef？
 
-#if SOFTWARE_SKINNED	//软件蒙皮
+#if SOFTWARE_SKINNED
 		//复制一份网格数据
 		pMeshData->pMesh->CloneMeshFVF(D3DXMESH_MANAGED, pMeshData->pMesh->GetFVF(),
 			pD3DDevice, &boneMesh->MeshData.pMesh);
 #endif
-#if HARDWARE_SKINNED	//硬件蒙皮
+#if HARDWARE_SKINNED
 		DWORD maxVertInfluences = 0;
 		DWORD numBoneComboEntries = 0;
 		ID3DXBuffer* boneComboTable = 0;
-		//将蒙皮信息更新到顶点
+		//将蒙皮信息更新到顶点并保存
 		pSkinInfo->ConvertToIndexedBlendedMesh(
 			pMeshData->pMesh,
 			D3DXMESH_MANAGED | D3DXMESH_WRITEONLY,
@@ -88,12 +95,6 @@ HRESULT BoneHierarchyLoader::CreateMeshContainer(
 		if (boneComboTable != NULL)
 			boneComboTable->Release();
 #endif
-
-		//保存属性表
-		//这个没有蒙皮信息的时候也可以保存吧？
-		pMeshData->pMesh->GetAttributeTable(NULL, &boneMesh->numAttributeGroups);
-		boneMesh->attributeTable = new D3DXATTRIBUTERANGE[boneMesh->numAttributeGroups];
-		pMeshData->pMesh->GetAttributeTable(boneMesh->attributeTable, NULL);
 
 		//保存绑定姿势逆矩阵
 		int numBones = pSkinInfo->GetNumBones();
