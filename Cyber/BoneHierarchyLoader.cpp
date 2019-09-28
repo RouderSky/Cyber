@@ -40,8 +40,7 @@ HRESULT BoneHierarchyLoader::CreateMeshContainer(
 	boneMesh->originalMesh = pMeshData->pMesh;
 	boneMesh->MeshData.Type = pMeshData->Type;
 
-	//保存属性表
-	//这个没有蒙皮信息的时候也可以保存吧？
+	//保存属性表		移动的位置
 	pMeshData->pMesh->GetAttributeTable(NULL, &boneMesh->numAttributeGroups);
 	boneMesh->attributeTable = new D3DXATTRIBUTERANGE[boneMesh->numAttributeGroups];
 	pMeshData->pMesh->GetAttributeTable(boneMesh->attributeTable, NULL);

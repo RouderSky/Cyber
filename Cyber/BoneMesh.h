@@ -19,7 +19,7 @@ struct BoneMesh : public D3DXMESHCONTAINER
 
 	//以下三个矩阵的元素是一一对应的
 	D3DXMATRIX **matrixsOfBone2Model;		//元素是引用到matrixOfbone2Model的指针
-	D3DXMATRIX *matrixsOfModel2Bone;		//绑定姿势逆矩阵，固定不变		boneOffsetMatrices
+	D3DXMATRIX *matrixsOfModel2Bone;		//绑定姿势逆矩阵，固定不变；我也不清楚是从模型空间变到骨骼空间还是从container空间变到骨骼空间，反正可以变到骨骼空间		boneOffsetMatrices
 	D3DXMATRIX *matrixPalette;				//蒙皮矩阵，渲染之前更新一下	currentBoneMatrices
 };
 

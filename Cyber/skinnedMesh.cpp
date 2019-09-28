@@ -221,7 +221,7 @@ void SkinnedMesh::HardRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *pr
 
 void SkinnedMesh::RealHardRender(Bone *curBone)
 {
-	if (curBone->pMeshContainer != NULL)
+	if (curBone->pMeshContainer != NULL)		//就是说有D3DXMESHCONTAINER的骨骼才是需要渲染的？
 	{
 		BoneMesh *boneMesh = (BoneMesh*)curBone->pMeshContainer;
 		if (boneMesh->pSkinInfo != NULL)		//如果有顶点蒙皮信息
@@ -262,7 +262,8 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 			//设置好Shader
 			pLightingEffect->SetMatrix("matW", &curBone->matrixOfbone2Model);	//顶点蒙皮也用这个矩阵，直接改了会有问题吧？
 																				//而且这个矩阵只是变换到模型空间，没有去到世界空间吧，应该乘上world矩阵再设置进去吧？
-																				//有蒙皮信息的网格的顶点是在骨骼空间，而不是模型空间的？
+																				//没有蒙皮信息的网格的顶点不是保存在模型空间中的
+
 			D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
 			pLightingEffect->SetTechnique(hTech);
 
