@@ -268,7 +268,7 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 			pLightingEffect->SetTechnique(hTech);
 
 			//绘制所有子网格
-			for (int i = 0; i < (int)boneMesh->numAttributeGroups; i++)		//原本用的是boneMesh->materials.size()
+			for (int i = 0; i < (int)boneMesh->materials.size(); i++)
 			{
 				pD3DDevice->SetMaterial(&boneMesh->materials[i]);
 				pLightingEffect->SetTexture("texDiffuse", boneMesh->textures[i]);
