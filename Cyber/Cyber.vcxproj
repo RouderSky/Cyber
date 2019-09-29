@@ -122,6 +122,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
     <ClInclude Include="application.h" />
     <ClInclude Include="Bone.h" />
     <ClInclude Include="BoneHierarchyLoader.h" />
@@ -131,6 +132,7 @@
     <ClInclude Include="skinnedMesh.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Animation.cpp" />
     <ClCompile Include="application.cpp" />
     <ClCompile Include="BoneHierarchyLoader.cpp" />
     <ClCompile Include="global.cpp" />

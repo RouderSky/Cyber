@@ -1,6 +1,7 @@
 #include <d3dx9.h>
 #include "mesh.h"
 #include "skinnedMesh.h"
+#include "Animation.h"
 
 class Application
 {
@@ -15,6 +16,7 @@ private:
 	bool m_deviceLost;		//显示设备是否丢失
 	Mesh m_soldier;
 	SkinnedMesh m_drone;
+	Animation m_animation;
 	float m_angle;
 
 	void Update(float deltaTime);

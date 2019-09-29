@@ -19,11 +19,9 @@ Application::~Application()
 		pText->Release();
 	if (pSprite != NULL)
 		pSprite->Release();
-
-	streanOfDebug << "Application Terminated \n";
-
 	if (streanOfDebug.good())
 		streanOfDebug.close();
+	streanOfDebug << "Application Terminated \n";
 }
 
 //CALLBACK什么意思？
@@ -142,6 +140,8 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	if (FAILED(hRes))
 		return E_FAIL;
 
+	m_animation.init();
+
 	//初始化其余变量
 	m_deviceLost = false;
 
@@ -184,6 +184,7 @@ void Application::OnDeviceLost()
 		pText->OnLostDevice();
 		pSprite->OnLostDevice();
 		m_drone.OnLostDevice();
+		m_animation.OnLostDevice();
 		m_deviceLost = true;
 	}
 	catch (...)
@@ -201,6 +202,7 @@ void Application::OnDeviceGained()
 		pText->OnResetDevice();
 		pSprite->OnResetDevice();
 		m_drone.OnResetDevice();
+		m_animation.OnResetDevice();
 		m_deviceLost = false;
 	}
 	catch (...)
@@ -255,6 +257,7 @@ void Application::Update(float deltaTime)
 
 		//自定义逻辑
 		m_angle += deltaTime;
+		m_animation.Update(deltaTime);
 	}
 	catch (...)		//这是什么语法？
 	{
@@ -293,8 +296,9 @@ void Application::Render()
 			{
 				//m_soldier.Render(&world, &view, &proj, &lightPos, &lightColor, &shadow);
 				//m_drone.SoftRender(&world, &view, &proj, &lightPos, &lightColor, &shadow);
-				m_drone.HardRender(&world, &view, &proj, &lightPos, &lightColor, &shadow);
+				//m_drone.HardRender(&world, &view, &proj, &lightPos, &lightColor, &shadow);
 				//m_drone.RenderSkeleton(&world, &view, &proj);
+				m_animation.Draw();
 				pD3DDevice->EndScene();
 				pD3DDevice->Present(NULL, NULL, NULL, NULL);
 			}
