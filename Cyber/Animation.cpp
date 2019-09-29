@@ -14,9 +14,6 @@ void Animation::init()
 	D3DXCreateLine(pD3DDevice, &m_pLine);
 
 	//todo：以下可以抽成一个函数
-	//D3DXPLAY_PINGPONG模式下，GetPeriod()得到的是2*最大播放秒数
-	//D3DXPLAY_LOOP模式下，GetPeriod()得到的是最大播放秒数
-	//D3DXPLAY_ONCE模式下，GetPeriod()得到的是最大播放秒数
 	D3DXCreateKeyframedAnimationSet("AnimationSet1", 500, D3DXPLAY_PINGPONG, 1, 0, NULL, &m_pAnimSet);
 
 	D3DXKEY_VECTOR3 pos[3];
@@ -45,7 +42,7 @@ Animation::~Animation()
 void Animation::Update(float deltaTime)
 {
 	m_time += deltaTime;
-	if (m_time > m_pAnimSet->GetPeriod())		//J...  播放一次的周期
+	if (m_time > m_pAnimSet->GetPeriod())
 		m_time -= (float)m_pAnimSet->GetPeriod();
 }
 
@@ -56,7 +53,7 @@ void Animation::Draw()
 
 	D3DXVECTOR3 pos, scale;
 	D3DXQUATERNION rot;
-	m_pAnimSet->GetSRT(m_time, 0, &scale, &rot, &pos);		//J...
+	m_pAnimSet->GetSRT(m_time, 0, &scale, &rot, &pos);
 
 	float size = scale.x * 20.0f;
 	m_pLine->SetWidth(size);		//J...

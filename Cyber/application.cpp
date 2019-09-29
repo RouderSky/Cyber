@@ -296,9 +296,9 @@ void Application::Render()
 			{
 				//m_soldier.Render(&world, &view, &proj, &lightPos, &lightColor, &shadow);
 				//m_drone.SoftRender(&world, &view, &proj, &lightPos, &lightColor, &shadow);
-				//m_drone.HardRender(&world, &view, &proj, &lightPos, &lightColor, &shadow);
+				m_drone.HardRender(&world, &view, &proj, &lightPos, &lightColor, &shadow);
 				//m_drone.RenderSkeleton(&world, &view, &proj);
-				m_animation.Draw();
+				//m_animation.Draw();
 				pD3DDevice->EndScene();
 				pD3DDevice->Present(NULL, NULL, NULL, NULL);
 			}
