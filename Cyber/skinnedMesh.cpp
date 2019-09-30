@@ -375,7 +375,7 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *view, D3DXMATRIX *proj)
  void SkinnedMesh::AdvancePose(float time)
  {
 	 m_pAnimControl->AdvanceTime(time, NULL);		//J...
-	 UpdateMatrixOfBone2Model(m_pRootBone, &world);
+	 UpdateMatrixOfBone2Model(m_pRootBone);
  }
 
  void SkinnedMesh::OnLostDevice()
