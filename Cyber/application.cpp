@@ -269,7 +269,7 @@ void Application::Update(float deltaTime)
 		///动画
 		if (global::KeyDown(VK_RETURN))
 		{
-			Sleep(300);		//为啥要延迟？
+			Sleep(300);		//不睡眠一下的话，切换会很快，导致闪烁
 			m_activeAnimationIdx = (m_activeAnimationIdx + 1) % (int)m_animSetNames.size();
 			m_drone.ActiveAnimSet(m_animSetNames[m_activeAnimationIdx]);
 		}

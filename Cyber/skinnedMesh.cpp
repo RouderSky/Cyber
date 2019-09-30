@@ -239,7 +239,7 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 
 			//设置好Shader
 			pLightingEffect->SetMatrixArray("MatrixPalette", boneMesh->matrixPalette, boneMesh->pSkinInfo->GetNumBones());
-			D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("SkinningAndLighting");		//交给shader来应用矩阵调色板并蒙皮
+			D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("SkinningAndLighting");		//交给shader来应用蒙皮矩阵并蒙皮
 			pLightingEffect->SetTechnique(hTech);
 
 			//绘制所有子网格
@@ -263,7 +263,7 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 		else
 		{
 			//设置好Shader
-			pLightingEffect->SetMatrix("matW", &curBone->matrixOfbone2Model);	//顶点蒙皮也用这个矩阵，直接改了会有问题吧？
+			pLightingEffect->SetMatrix("matW", &curBone->matrixOfbone2Model);	//顶点蒙皮也用matW，直接改了会有问题吧？
 																				//而且这个矩阵只是变换到模型空间，没有去到世界空间吧，应该乘上world矩阵再设置进去吧？
 																				//没有蒙皮信息的网格的顶点不是保存在模型空间中的
 
