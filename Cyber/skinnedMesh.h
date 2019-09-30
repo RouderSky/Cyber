@@ -19,9 +19,9 @@ public:
 	void RenderSkeleton(D3DXMATRIX *view, D3DXMATRIX *proj);
 	void RealRenderSkeleton(Bone* curBone, Bone* parent = NULL);
 
-	void GetAnimations(vector<string> &animSetNames);
-	void SetAnimation(string name);
-	void AdvancePose(float time);
+	void GetAllAnimSetName(vector<string> &animSetNames);
+	void ActiveAnimSet(string name);
+	void AdvanceAnimSet(float time);
 
 	void OnLostDevice();
 	void OnResetDevice();

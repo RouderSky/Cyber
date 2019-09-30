@@ -338,23 +338,23 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *view, D3DXMATRIX *proj)
 		RealRenderSkeleton((Bone*)curBone->pFrameFirstChild, curBone);
 }
 
- void SkinnedMesh::GetAnimations(vector<string>& animSetNames)
+ void SkinnedMesh::GetAllAnimSetName(vector<string>& animSetNames)
  {
 	 ID3DXAnimationSet *animSet = NULL;
-	 int numAnimSets = (int)m_pAnimControl->GetMaxNumAnimationSets();		//J...
+	 int numAnimSets = (int)m_pAnimControl->GetMaxNumAnimationSets();
 	 for (int i = 0; i < numAnimSets; i++)
 	 {
 		 animSet = NULL;
-		 m_pAnimControl->GetAnimationSet(i, &animSet);		//J...
+		 m_pAnimControl->GetAnimationSet(i, &animSet);
 		 if (animSet != NULL)
 		 {
-			 animSetNames.push_back(animSet->GetName());		//J...
+			 animSetNames.push_back(animSet->GetName());
 			 animSet->Release();
 		 }
 	 }
  }
 
- void SkinnedMesh::SetAnimation(string name)
+ void SkinnedMesh::ActiveAnimSet(string name)
  {
 	 ID3DXAnimationSet *animSet = NULL;
 
@@ -366,13 +366,13 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *view, D3DXMATRIX *proj)
 		 if (animSet != NULL)
 		 {
 			 if (strcmp(name.c_str(), animSet->GetName()) == 0)
-				 m_pAnimControl->SetTrackAnimationSet(0, animSet);		//J...
+				 m_pAnimControl->SetTrackAnimationSet(0, animSet);
 			 animSet->Release();
 		 }
 	 }
  }
 
- void SkinnedMesh::AdvancePose(float time)
+ void SkinnedMesh::AdvanceAnimSet(float time)
  {
 	 m_pAnimControl->AdvanceTime(time, NULL);		//J...
 	 UpdateMatrixOfBone2Model(m_pRootBone);

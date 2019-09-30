@@ -143,9 +143,9 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	D3DXMatrixIdentity(&m_drone.world);
 
 	//骨骼动画
-	m_drone.GetAnimations(m_animSetNames);
+	m_drone.GetAllAnimSetName(m_animSetNames);
 	m_activeAnimationIdx = 0;
-	m_drone.SetAnimation(m_animSetNames[m_activeAnimationIdx]);
+	m_drone.ActiveAnimSet(m_animSetNames[m_activeAnimationIdx]);
 
 	m_animation.init();
 
@@ -271,9 +271,9 @@ void Application::Update(float deltaTime)
 		{
 			Sleep(300);		//为啥要延迟？
 			m_activeAnimationIdx = (m_activeAnimationIdx + 1) % (int)m_animSetNames.size();
-			m_drone.SetAnimation(m_animSetNames[m_activeAnimationIdx]);
+			m_drone.ActiveAnimSet(m_animSetNames[m_activeAnimationIdx]);
 		}
-		m_drone.AdvancePose(deltaTime * 0.5);
+		m_drone.AdvanceAnimSet(deltaTime * 0.5);
 	}
 	catch (...)		//这是什么语法？
 	{
