@@ -63,9 +63,9 @@ HRESULT SkinnedMesh::Load(const char fileName[], const char lightingEffectFileNa
 
 	UpdateMatrixOfBone2Model(m_pRootBone);
 
-	SaveMatrixsOfBone2Model2Container(m_pRootBone);			//改过
+	SaveMatrixsOfBone2Model2Container(m_pRootBone);
 
-	D3DXCreateSphere(pD3DDevice, 0.02, 10, 20, &m_pSphereMesh, NULL);	//为什么不能放到构造函数中？
+	D3DXCreateSphere(pD3DDevice, 0.02, 10, 20, &m_pSphereMesh, NULL);
 }
 
 //为啥不在CreateMeshContainer中实现以下逻辑，是因为一个Container中的所有Bone不一定都创建好了嘛？
