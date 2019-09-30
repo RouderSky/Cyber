@@ -18,6 +18,11 @@ public:
 	void RealHardRender(Bone *curBone);
 	void RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj);
 	void RealRenderSkeleton(D3DXMATRIX *world, Bone* curBone, Bone* parent = NULL);
+
+	void GetAnimations(vector<string> &animSetNames);
+	void SetAnimation(string name);
+	void AdvancePose(D3DXMATRIX world, float time);
+
 	void OnLostDevice();
 	void OnResetDevice();
 
@@ -27,6 +32,7 @@ private:
 	void UpdateMatrixOfBone2Model(Bone* bone, D3DXMATRIX* parentMatrix = NULL);
 
 	Bone *m_pRootBone;
+	ID3DXAnimationController *m_pAnimControl;
 	LPD3DXMESH m_pSphereMesh;
 	ID3DXEffect *pLightingEffect;
 	ID3DXEffect *pShadowEffect;

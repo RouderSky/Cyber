@@ -4,6 +4,7 @@
 SkinnedMesh::SkinnedMesh()
 {
 	m_pRootBone = NULL;
+	m_pAnimControl = NULL;
 	m_pSphereMesh = NULL;
 }
 
@@ -11,6 +12,8 @@ SkinnedMesh::~SkinnedMesh()
 {
 	BoneHierarchyLoader boneHierarchy;
 	boneHierarchy.DestroyFrame(m_pRootBone);
+	if (m_pAnimControl)
+		m_pAnimControl->Release();
 	if (pLightingEffect != NULL)
 		pLightingEffect->Release();
 	if (pShadowEffect != NULL)
@@ -58,7 +61,7 @@ HRESULT SkinnedMesh::Load(const char fileName[], const char lightingEffectFileNa
 	//¼ÓÔØÍø¸ñ
 	BoneHierarchyLoader boneHierarchyLoader;
 	D3DXLoadMeshHierarchyFromX(fileName, D3DXMESH_MANAGED, pD3DDevice, &boneHierarchyLoader,
-								NULL, (LPD3DXFRAME*)&m_pRootBone, NULL);
+								NULL, (LPD3DXFRAME*)&m_pRootBone, &m_pAnimControl);
 
 
 	UpdateMatrixOfBone2Model(m_pRootBone);
@@ -334,6 +337,47 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX
 	if (curBone->pFrameFirstChild)
 		RealRenderSkeleton(world, (Bone*)curBone->pFrameFirstChild, curBone);
 }
+
+ void SkinnedMesh::GetAnimations(vector<string>& animSetNames)
+ {
+	 ID3DXAnimationSet *animSet = NULL;
+	 int numAnimSets = (int)m_pAnimControl->GetMaxNumAnimationSets();		//J...
+	 for (int i = 0; i < numAnimSets; i++)
+	 {
+		 animSet = NULL;
+		 m_pAnimControl->GetAnimationSet(i, &animSet);		//J...
+		 if (animSet != NULL)
+		 {
+			 animSetNames.push_back(animSet->GetName());		//J...
+			 animSet->Release();
+		 }
+	 }
+ }
+
+ void SkinnedMesh::SetAnimation(string name)
+ {
+	 ID3DXAnimationSet *animSet = NULL;
+
+	 int numAnims = (int)m_pAnimControl->GetMaxNumAnimationSets();
+	 for (int i = 0; i < numAnims; i++)
+	 {
+		 animSet = NULL;
+		 m_pAnimControl->GetAnimationSet(i, &animSet);
+		 if (animSet != NULL)
+		 {
+			 if (strcmp(name.c_str(), animSet->GetName()) == 0)
+				 m_pAnimControl->SetTrackAnimationSet(0, animSet);		//J...
+			 animSet->Release();
+		 }
+	 }
+ }
+
+ void SkinnedMesh::AdvancePose(D3DXMATRIX world, float time)
+ {
+	 m_pAnimControl->AdvanceTime(time, NULL);		//J...
+	 UpdateMatrixOfBone2Model(m_pRootBone, &world);
+ }
+
 
  void SkinnedMesh::OnLostDevice()
  {

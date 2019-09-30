@@ -140,6 +140,11 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	if (FAILED(hRes))
 		return E_FAIL;
 
+	//骨骼动画
+	m_drone.GetAnimations(m_animSetNames);
+	m_activeAnimationIdx = 0;
+	m_drone.SetAnimation(m_animSetNames[m_activeAnimationIdx]);
+
 	m_animation.init();
 
 	//初始化其余变量
@@ -258,6 +263,17 @@ void Application::Update(float deltaTime)
 		//自定义逻辑
 		m_angle += deltaTime;
 		m_animation.Update(deltaTime);
+
+		///动画
+		if (global::KeyDown(VK_RETURN))
+		{
+			Sleep(300);		//为啥要延迟？
+			m_activeAnimationIdx = (m_activeAnimationIdx + 1) % (int)m_animSetNames.size();
+			m_drone.SetAnimation(m_animSetNames[m_activeAnimationIdx]);
+		}
+		D3DXMATRIX world;
+		D3DXMatrixIdentity(&world);						//这里也成世界坐标有点不妥...
+		m_drone.AdvancePose(world, deltaTime * 0.5f);	//为什么要乘0.5？
 	}
 	catch (...)		//这是什么语法？
 	{
@@ -299,6 +315,11 @@ void Application::Render()
 				m_drone.HardRender(&world, &view, &proj, &lightPos, &lightColor, &shadow);
 				//m_drone.RenderSkeleton(&world, &view, &proj);
 				//m_animation.Draw();
+
+				//UI
+				RECT rc = { 10,10,0,0 };
+				pText->DrawText(NULL, "Press Return to toggle animation:", -1, &rc, DT_LEFT | DT_TOP | DT_NOCLIP, 0x66000000);	//J...
+
 				pD3DDevice->EndScene();
 				pD3DDevice->Present(NULL, NULL, NULL, NULL);
 			}

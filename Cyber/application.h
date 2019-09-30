@@ -15,7 +15,11 @@ private:
 	D3DPRESENT_PARAMETERS m_present;
 	bool m_deviceLost;		//显示设备是否丢失
 	Mesh m_soldier;
+
 	SkinnedMesh m_drone;
+	vector<string> m_animSetNames;
+	int m_activeAnimationIdx;
+
 	Animation m_animation;
 	float m_angle;
 
