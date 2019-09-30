@@ -133,12 +133,14 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	if (FAILED(hRes))
  		return E_FAIL;
 	delete[]meshFileName;
+	D3DXMatrixIdentity(&m_soldier.world);
 
 	meshFileName = global::CombineStr(ROOT_PATH_TO_MESH, "soldier2.x");
 	hRes = m_drone.Load(meshFileName, "Lighting.hlsl", "Shadow.hlsl");
 	delete[]meshFileName;
 	if (FAILED(hRes))
 		return E_FAIL;
+	D3DXMatrixIdentity(&m_drone.world);
 
 	//骨骼动画
 	m_drone.GetAnimations(m_animSetNames);
@@ -271,9 +273,7 @@ void Application::Update(float deltaTime)
 			m_activeAnimationIdx = (m_activeAnimationIdx + 1) % (int)m_animSetNames.size();
 			m_drone.SetAnimation(m_animSetNames[m_activeAnimationIdx]);
 		}
-		D3DXMATRIX world;
-		D3DXMatrixIdentity(&world);						//这里也成世界坐标有点不妥...
-		m_drone.AdvancePose(world, deltaTime * 0.5f);	//为什么要乘0.5？
+		m_drone.AdvancePose(deltaTime * 0.5);
 	}
 	catch (...)		//这是什么语法？
 	{
@@ -294,9 +294,6 @@ void Application::Render()
 			D3DXMATRIX shadow;
 			D3DXMatrixShadow(&shadow, &lightPos, &ground);
 
-			D3DXMATRIX world;
-			D3DXMatrixIdentity(&world);
-
 			D3DXMATRIX view;
 			D3DXVECTOR3 targetPos(0.0f, 1.0f, 0.0f);
 			D3DXVECTOR3 eyeDir(cos(m_angle), 1.0f, sin(m_angle));
@@ -310,10 +307,10 @@ void Application::Render()
 			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0xffffffff, 1.0f, 0);
 			if (SUCCEEDED(pD3DDevice->BeginScene()))
 			{
-				//m_soldier.Render(&world, &view, &proj, &lightPos, &lightColor, &shadow);
-				//m_drone.SoftRender(&world, &view, &proj, &lightPos, &lightColor, &shadow);
-				m_drone.HardRender(&world, &view, &proj, &lightPos, &lightColor, &shadow);
-				//m_drone.RenderSkeleton(&world, &view, &proj);
+				//m_soldier.Render(&view, &proj, &lightPos, &lightColor, &shadow);
+				//m_drone.SoftRender(&view, &proj, &lightPos, &lightColor, &shadow);
+				m_drone.HardRender(&view, &proj, &lightPos, &lightColor, &shadow);
+				//m_drone.RenderSkeleton(&view, &proj);
 				//m_animation.Draw();
 
 				//UI

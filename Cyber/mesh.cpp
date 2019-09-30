@@ -95,9 +95,9 @@ HRESULT Mesh::Load(const char fName[], const char lightingEffectFileName[], cons
 	return S_OK;
 }
 
-void Mesh::Render(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
+void Mesh::Render(D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
 {
-	pLightingEffect->SetMatrix("matW", world);
+	pLightingEffect->SetMatrix("matW", &world);
 	pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
 	pLightingEffect->SetVector("lightPos", lightPos);
 	pLightingEffect->SetVector("lightColor", lightColor);

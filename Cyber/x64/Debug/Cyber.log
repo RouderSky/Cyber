@@ -1,2 +1,12 @@
-﻿  application.cpp
+﻿  Animation.cpp
+  application.cpp
+d:\c++\cyber\cyber\application.cpp(276): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+  BoneHierarchyLoader.cpp
+  global.cpp
+  main.cpp
+  mesh.cpp
+  skinnedMesh.cpp
+d:\c++\cyber\cyber\skinnedmesh.cpp(71): warning C4305: “参数”: 从“double”到“FLOAT”截断
+  正在生成代码...
+d:\c++\cyber\cyber\skinnedmesh.cpp(72): warning C4715: “SkinnedMesh::Load”: 不是所有的控件路径都返回值
   Cyber.vcxproj -> D:\C++\Cyber\x64\Debug\Cyber.exe

@@ -14,9 +14,11 @@ public:
 	Mesh(const char fName[], const char lightingEffectFileName[], const char shadowEffectFileName[]);
 	~Mesh();
 	HRESULT Load(const char fName[], const char lightingEffectFileName[], const char shadowEffectFileName[]);
-	void Render(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
+	void Render(D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
 	void DrawMesh();
 	void Release();
+
+	D3DXMATRIX world;
 private:
 	ID3DXMesh * m_pMesh;
 	vector<IDirect3DTexture9*> m_textures;

@@ -12,20 +12,21 @@ public:
 	SkinnedMesh();
 	~SkinnedMesh();
 	HRESULT Load(const char fileName[], const char lightingEffectFileName[], const char shadowEffectFileName[]);
-	void SoftRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
+	void SoftRender(D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
 	void RealSoftRender(Bone *curBone);
-	void HardRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
+	void HardRender(D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow);
 	void RealHardRender(Bone *curBone);
-	void RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj);
-	void RealRenderSkeleton(D3DXMATRIX *world, Bone* curBone, Bone* parent = NULL);
+	void RenderSkeleton(D3DXMATRIX *view, D3DXMATRIX *proj);
+	void RealRenderSkeleton(Bone* curBone, Bone* parent = NULL);
 
 	void GetAnimations(vector<string> &animSetNames);
 	void SetAnimation(string name);
-	void AdvancePose(D3DXMATRIX world, float time);
+	void AdvancePose(float time);
 
 	void OnLostDevice();
 	void OnResetDevice();
 
+	D3DXMATRIX world;
 private:
 	void SaveMatrixsOfBone2Model2Container(Bone *bone);
 	//¸üÐÂPose

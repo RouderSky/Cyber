@@ -139,10 +139,10 @@ struct VERTEX
 	static const DWORD FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE;
 };
 
-void SkinnedMesh::SoftRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
+void SkinnedMesh::SoftRender(D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
 {
 	//模型绘制
-	pLightingEffect->SetMatrix("matW", world);
+	pLightingEffect->SetMatrix("matW", &world);
 	pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
 	pLightingEffect->SetVector("lightPos", lightPos);
 	pLightingEffect->SetVector("lightColor", lightColor);
@@ -213,9 +213,9 @@ void SkinnedMesh::RealSoftRender(Bone *curBone)
 		RealSoftRender((Bone*)curBone->pFrameFirstChild);
 }
 
-void SkinnedMesh::HardRender(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
+void SkinnedMesh::HardRender(D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DXVECTOR4 *lightColor, D3DXMATRIX *shadow)
 {
-	pLightingEffect->SetMatrix("matW", world);
+	pLightingEffect->SetMatrix("matW", &world);
 	pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
 	pLightingEffect->SetVector("lightPos", lightPos);
 	pLightingEffect->SetVector("lightColor", lightColor);
@@ -295,14 +295,14 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 		RealHardRender((Bone*)curBone->pFrameFirstChild);
 }
 
-void SkinnedMesh::RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX *proj)
+void SkinnedMesh::RenderSkeleton(D3DXMATRIX *view, D3DXMATRIX *proj)
 {
 	pD3DDevice->SetTransform(D3DTS_VIEW, view);
 	pD3DDevice->SetTransform(D3DTS_PROJECTION, proj);
-	RealRenderSkeleton(world, m_pRootBone);
+	RealRenderSkeleton(m_pRootBone);
 }
 
- void SkinnedMesh::RealRenderSkeleton(D3DXMATRIX *world, Bone* curBone, Bone* parentBone)
+ void SkinnedMesh::RealRenderSkeleton(Bone* curBone, Bone* parentBone)
 {
 	//第一层调用时，parent是NULL
 	if (parentBone != NULL)
@@ -311,7 +311,7 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX
 		{
 			//在当前骨骼位置绘制一个球
 			pD3DDevice->SetRenderState(D3DRS_LIGHTING, true);
-			pD3DDevice->SetTransform(D3DTS_WORLD, &(curBone->matrixOfbone2Model * (*world)));
+			pD3DDevice->SetTransform(D3DTS_WORLD, &(curBone->matrixOfbone2Model * world));
 			m_pSphereMesh->DrawSubset(0);
 
 			//绘制骨骼间的连线
@@ -324,7 +324,7 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX
 			if (D3DXVec3Length(&(curBonePos - parentBonePos)) < 2.0f)
 			{
 				VERTEX vert[] = { VERTEX(parentBonePos, 0xffff0000), VERTEX(curBonePos, 0xff00ff00) };
-				pD3DDevice->SetTransform(D3DTS_WORLD, world);
+				pD3DDevice->SetTransform(D3DTS_WORLD, &world);
 				pD3DDevice->SetRenderState(D3DRS_LIGHTING, false);
 				pD3DDevice->SetFVF(VERTEX::FVF);
 				pD3DDevice->DrawPrimitiveUP(D3DPT_LINESTRIP, 1, vert, sizeof(VERTEX));
@@ -333,9 +333,9 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX
 	}
 
 	if (curBone->pFrameSibling)
-		RealRenderSkeleton(world, (Bone*)curBone->pFrameSibling, parentBone);
+		RealRenderSkeleton((Bone*)curBone->pFrameSibling, parentBone);
 	if (curBone->pFrameFirstChild)
-		RealRenderSkeleton(world, (Bone*)curBone->pFrameFirstChild, curBone);
+		RealRenderSkeleton((Bone*)curBone->pFrameFirstChild, curBone);
 }
 
  void SkinnedMesh::GetAnimations(vector<string>& animSetNames)
@@ -372,12 +372,11 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *world, D3DXMATRIX *view, D3DXMATRIX
 	 }
  }
 
- void SkinnedMesh::AdvancePose(D3DXMATRIX world, float time)
+ void SkinnedMesh::AdvancePose(float time)
  {
 	 m_pAnimControl->AdvanceTime(time, NULL);		//J...
 	 UpdateMatrixOfBone2Model(m_pRootBone, &world);
  }
-
 
  void SkinnedMesh::OnLostDevice()
  {
