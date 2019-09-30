@@ -374,7 +374,7 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *view, D3DXMATRIX *proj)
 
  void SkinnedMesh::AdvanceAnimSet(float time)
  {
-	 m_pAnimControl->AdvanceTime(time, NULL);		//J...
+	 m_pAnimControl->AdvanceTime(time, NULL);
 	 UpdateMatrixOfBone2Model(m_pRootBone);
  }
 

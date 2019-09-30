@@ -315,7 +315,7 @@ void Application::Render()
 
 				//UI
 				RECT rc = { 10,10,0,0 };
-				pText->DrawText(NULL, "Press Return to toggle animation:", -1, &rc, DT_LEFT | DT_TOP | DT_NOCLIP, 0x66000000);	//J...
+				pText->DrawText(NULL, "Press Return to toggle animation:", -1, &rc, DT_LEFT | DT_TOP | DT_NOCLIP, 0x66000000);
 
 				pD3DDevice->EndScene();
 				pD3DDevice->Present(NULL, NULL, NULL, NULL);

@@ -10,7 +10,6 @@ void Animation::init()
 {
 	m_time = 0.0f;
 
-	//创建一条很粗的线
 	D3DXCreateLine(pD3DDevice, &m_pLine);
 
 	//todo：以下可以抽成一个函数
@@ -49,24 +48,24 @@ void Animation::Update(float deltaTime)
 void Animation::Draw()
 {
 	D3DVIEWPORT9 vp;
-	pD3DDevice->GetViewport(&vp);		//J...
+	pD3DDevice->GetViewport(&vp);
 
 	D3DXVECTOR3 pos, scale;
 	D3DXQUATERNION rot;
 	m_pAnimSet->GetSRT(m_time, 0, &scale, &rot, &pos);
 
 	float size = scale.x * 20.0f;
-	m_pLine->SetWidth(size);		//J...
+	m_pLine->SetWidth(size);
 
-	m_pLine->Begin();		//J...
+	m_pLine->Begin();
 
 	pos.x *= vp.Width;
 	pos.y *= vp.Height;
 	D3DXVECTOR2 p[] = { D3DXVECTOR2(pos.x - size * 0.5f, pos.y),
 						D3DXVECTOR2(pos.x + size * 0.5f, pos.y) };
-	m_pLine->Draw(p, 2, 0xffff0000);	//J...
+	m_pLine->Draw(p, 2, 0xffff0000);
 
-	m_pLine->End();	//J...
+	m_pLine->End();
 }
 
 void Animation::OnLostDevice()
