@@ -1,3 +1,2 @@
 ﻿  application.cpp
-d:\c++\cyber\cyber\application.cpp(276): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
   Cyber.vcxproj -> D:\C++\Cyber\x64\Debug\Cyber.exe

@@ -21,7 +21,9 @@ public:
 
 	void GetAllAnimSetName(vector<string> &animSetNames);
 	void ActiveAnimSet(string name);
-	void AdvanceAnimSet(float time);
+	//更新Pose
+	void UpdateMatrixOfBone2Model();
+	ID3DXAnimationController* GetControllerCopy();
 
 	void OnLostDevice();
 	void OnResetDevice();
@@ -29,8 +31,7 @@ public:
 	D3DXMATRIX world;
 private:
 	void SaveMatrixsOfBone2Model2Container(Bone *bone);
-	//更新Pose
-	void UpdateMatrixOfBone2Model(Bone* bone, D3DXMATRIX* parentMatrix = NULL);
+	void UpdateMatrixOfBone2Model(Bone* bone, D3DXMATRIX* parentMatrix);
 
 	Bone *m_pRootBone;
 	ID3DXAnimationController *m_pAnimControl;

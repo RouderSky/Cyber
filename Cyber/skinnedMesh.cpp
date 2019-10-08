@@ -64,11 +64,13 @@ HRESULT SkinnedMesh::Load(const char fileName[], const char lightingEffectFileNa
 								NULL, (LPD3DXFRAME*)&m_pRootBone, &m_pAnimControl);
 
 
-	UpdateMatrixOfBone2Model(m_pRootBone);
+	UpdateMatrixOfBone2Model();
 
 	SaveMatrixsOfBone2Model2Container(m_pRootBone);
 
 	D3DXCreateSphere(pD3DDevice, 0.02, 10, 20, &m_pSphereMesh, NULL);
+
+	D3DXMatrixIdentity(&world);
 }
 
 //为啥不在CreateMeshContainer中实现以下逻辑，是因为一个Container中的所有Bone不一定都创建好了嘛？
@@ -100,17 +102,17 @@ void SkinnedMesh::SaveMatrixsOfBone2Model2Container(Bone *bone)
 
 }
 
+void SkinnedMesh::UpdateMatrixOfBone2Model()
+{
+	D3DXMATRIX i;
+	D3DXMatrixIdentity(&i);
+	UpdateMatrixOfBone2Model(m_pRootBone, &i);
+}
+
 void SkinnedMesh::UpdateMatrixOfBone2Model(Bone* bone, D3DXMATRIX *parentMatrix)
 {
-	if (bone == NULL)
+	if (bone == NULL)		//这个没有必要了吧？
 		return;
-
-	if (parentMatrix == NULL)
-	{
-		D3DXMATRIX i;
-		D3DXMatrixIdentity(&i);
-		parentMatrix = &i;
-	}
 
 	D3DXMatrixMultiply(
 		&bone->matrixOfbone2Model,
@@ -372,10 +374,19 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *view, D3DXMATRIX *proj)
 	 }
  }
 
- void SkinnedMesh::AdvanceAnimSet(float time)
+ ID3DXAnimationController* SkinnedMesh::GetControllerCopy()
  {
-	 m_pAnimControl->AdvanceTime(time, NULL);
-	 UpdateMatrixOfBone2Model(m_pRootBone);
+	 ID3DXAnimationController *newAnimController = NULL;
+	 if (m_pAnimControl != NULL)
+	 {
+		 m_pAnimControl->CloneAnimationController(
+			 m_pAnimControl->GetMaxNumAnimationOutputs(),
+			 m_pAnimControl->GetMaxNumAnimationSets(),
+			 m_pAnimControl->GetMaxNumTracks(),
+			 m_pAnimControl->GetMaxNumEvents(),
+			 &newAnimController);
+	 }
+	 return newAnimController;
  }
 
  void SkinnedMesh::OnLostDevice()

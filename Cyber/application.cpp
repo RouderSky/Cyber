@@ -128,24 +128,30 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	D3DXCreateSprite(pD3DDevice, &pSprite);
 
 	//加载网格
+	///无骨骼网格
 	char *meshFileName = global::CombineStr(ROOT_PATH_TO_MESH, "soldier1.x");
 	HRESULT hRes = m_soldier.Load(meshFileName, "Lighting.hlsl", "Shadow.hlsl");
 	if (FAILED(hRes))
  		return E_FAIL;
 	delete[]meshFileName;
-	D3DXMatrixIdentity(&m_soldier.world);
 
+	///有骨骼网格
 	meshFileName = global::CombineStr(ROOT_PATH_TO_MESH, "soldier2.x");
 	hRes = m_drone.Load(meshFileName, "Lighting.hlsl", "Shadow.hlsl");
 	delete[]meshFileName;
 	if (FAILED(hRes))
 		return E_FAIL;
-	D3DXMatrixIdentity(&m_drone.world);
 
-	//骨骼动画
-	m_drone.GetAllAnimSetName(m_animSetNames);
-	m_activeAnimationIdx = 0;
-	m_drone.ActiveAnimSet(m_animSetNames[m_activeAnimationIdx]);
+	////骨骼动画
+	for (int i = 0; i < 4; i++)
+	{
+		D3DXMATRIX mPos;
+		D3DXMatrixTranslation(&mPos, -1.5f + i * 1.0f, 0.0f, 0.0f);
+		m_positions.push_back(mPos);
+		m_animControllers.push_back(m_drone.GetControllerCopy());
+	}
+	srand(GetTickCount());
+	RandomizeAnimations();
 
 	m_animation.init();
 
@@ -174,7 +180,7 @@ int Application::EnterMsgLoop()
 			DWORD curTime = GetTickCount();
 			float deltaTime = (curTime - lastTime)*0.001f;
 			Update(deltaTime);
-			Render();
+			Render(deltaTime);
 			lastTime = curTime;
 		}
 	}
@@ -266,14 +272,11 @@ void Application::Update(float deltaTime)
 		m_angle += deltaTime;
 		m_animation.Update(deltaTime);
 
-		///动画
 		if (global::KeyDown(VK_RETURN))
 		{
-			Sleep(300);		//不睡眠一下的话，切换会很快，导致闪烁
-			m_activeAnimationIdx = (m_activeAnimationIdx + 1) % (int)m_animSetNames.size();
-			m_drone.ActiveAnimSet(m_animSetNames[m_activeAnimationIdx]);
+			Sleep(300);
+			RandomizeAnimations();
 		}
-		m_drone.AdvanceAnimSet(deltaTime * 0.5);
 	}
 	catch (...)		//这是什么语法？
 	{
@@ -281,7 +284,7 @@ void Application::Update(float deltaTime)
 	}
 }
 
-void Application::Render()
+void Application::Render(float deltaTime)
 {
 	if (!m_deviceLost)
 	{
@@ -308,9 +311,16 @@ void Application::Render()
 			if (SUCCEEDED(pD3DDevice->BeginScene()))
 			{
 				//m_soldier.Render(&view, &proj, &lightPos, &lightColor, &shadow);
-				//m_drone.SoftRender(&view, &proj, &lightPos, &lightColor, &shadow);
-				m_drone.HardRender(&view, &proj, &lightPos, &lightColor, &shadow);
-				//m_drone.RenderSkeleton(&view, &proj);
+				int numController = (int)m_animControllers.size();
+				for (int i = 0; i < numController; i++)
+				{
+					m_animControllers[i]->AdvanceTime(deltaTime * 0.5, NULL);
+					m_drone.UpdateMatrixOfBone2Model();
+					m_drone.world = m_positions[i];
+					//m_drone.SoftRender(&view, &proj, &lightPos, &lightColor, &shadow);
+					m_drone.HardRender(&view, &proj, &lightPos, &lightColor, &shadow);
+					//m_drone.RenderSkeleton(&view, &proj);
+				}
 				//m_animation.Draw();
 
 				//UI
@@ -325,6 +335,19 @@ void Application::Render()
 		{
 			streanOfDebug << "Error in Application::Render() \n";
 		}
+	}
+}
+
+void Application::RandomizeAnimations()
+{
+	int numAnimControllers = (int)m_animControllers.size();
+	for (int i = 0; i < numAnimControllers; i++)
+	{
+		int numAnimations = m_animControllers[i]->GetMaxNumAnimationSets();
+		ID3DXAnimationSet *anim = NULL;
+		m_animControllers[i]->GetAnimationSet(rand() % numAnimations, &anim);
+		m_animControllers[i]->SetTrackAnimationSet(0, anim);
+		anim->Release();
 	}
 }
 

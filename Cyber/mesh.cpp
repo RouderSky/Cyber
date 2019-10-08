@@ -92,6 +92,8 @@ HRESULT Mesh::Load(const char fName[], const char lightingEffectFileName[], cons
 	adjacencyBfr->Release();
 	materialBfr->Release();
 
+	D3DXMatrixIdentity(&world);
+
 	return S_OK;
 }
 

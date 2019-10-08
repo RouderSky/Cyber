@@ -17,8 +17,8 @@ private:
 	Mesh m_soldier;
 
 	SkinnedMesh m_drone;
-	vector<string> m_animSetNames;
-	int m_activeAnimationIdx;
+	vector<ID3DXAnimationController*> m_animControllers;
+	vector<D3DXMATRIX> m_positions;
 
 	Animation m_animation;
 	float m_angle;
@@ -26,7 +26,8 @@ private:
 	void Update(float deltaTime);
 	void OnDeviceLost();
 	void OnDeviceGained();
-	void Render();
+	void Render(float deltaTime);
+	void RandomizeAnimations();
 	void Cleanup();
 	void Quit();
 };
