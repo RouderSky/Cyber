@@ -408,12 +408,12 @@ void Application::RandomBlend2Animation()
 	//混合
 	float w = (rand() % 1000) / 1000.0f;
 	m_animController->SetTrackWeight(0, w);
-	m_animController->SetTrackWeight(1, 1.0f - w);		//todo：试试看是不是总和不为1也可以
+	m_animController->SetTrackWeight(1, 1.0f - w);
 	m_animController->SetTrackSpeed(0, (rand() % 1000) / 500.0f);
 	m_animController->SetTrackSpeed(1, (rand() % 1000) / 500.0f);
 	m_animController->SetTrackPriority(0, D3DXPRIORITY_HIGH);		//todo：改掉优先级试试
 	m_animController->SetTrackPriority(1, D3DXPRIORITY_HIGH);
-	m_animController->SetTrackEnable(0, true);		//todo：去掉试试，应该是默认开启的
+	m_animController->SetTrackEnable(0, true);
 	m_animController->SetTrackEnable(1, true);
 }
 
