@@ -30,3 +30,10 @@ bool global::KeyUp(int vk_code)
 {
 	return !KeyDown(vk_code);
 }
+
+string global::IntToString(int i)
+{
+	char num[10];
+	_itoa(i, num, 10);
+	return num;
+}

@@ -30,6 +30,8 @@ namespace global
 
 	bool KeyDown(int vk_code);
 	bool KeyUp(int vk_code);
+
+	string IntToString(int i);
 };
 
 #endif

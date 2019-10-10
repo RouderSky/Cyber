@@ -3,6 +3,7 @@
 IDirect3DDevice9 *pD3DDevice = NULL;
 ID3DXSprite *pSprite = NULL;
 ID3DXFont *pText = NULL;
+ID3DXLine *pLine = NULL;
 //////////////////////////////////////////
 ofstream streanOfDebug("debug.txt");
 
@@ -127,6 +128,8 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	//？
 	D3DXCreateSprite(pD3DDevice, &pSprite);
 
+	D3DXCreateLine(pD3DDevice, &pLine);
+
 	//加载网格
 	///无骨骼网格
 	char *meshFileName = global::CombineStr(ROOT_PATH_TO_MESH, "soldier1.x");
@@ -198,6 +201,7 @@ void Application::OnDeviceLost()
 		//哪些对象需要调一下OnLostDevice？
 		pText->OnLostDevice();
 		pSprite->OnLostDevice();
+		pLine->OnLostDevice();
 		m_drone.OnLostDevice();
 		m_animation.OnLostDevice();
 		m_deviceLost = true;
@@ -216,6 +220,7 @@ void Application::OnDeviceGained()
 		//哪些对象需要调一下OnResetDevice？
 		pText->OnResetDevice();
 		pSprite->OnResetDevice();
+		pLine->OnResetDevice();
 		m_drone.OnResetDevice();
 		m_animation.OnResetDevice();
 		m_deviceLost = false;
@@ -331,6 +336,7 @@ void Application::Render(float deltaTime)
 				m_animController->AdvanceTime(deltaTime * 0.5, NULL);
 				m_drone.UpdateMatrixOfBone2Model();
 				m_drone.HardRender(&view, &proj, &lightPos, &lightColor, &shadow);
+				TrackStatus();
 
 				//m_animation.Draw();
 
@@ -389,6 +395,32 @@ void Application::RandomizeAnimations2()
 
 void Application::TrackStatus()
 {
+	pLine->SetWidth(100.0f);
+	pLine->Begin();
+	D3DXVECTOR2 p[] = { D3DXVECTOR2(0, 550), D3DXVECTOR2(800, 550) };
+	pLine->Draw(p, 2, 0x88FFFFFF);
+	pLine->End();
+
+	int numTracks = m_animController->GetMaxNumTracks();
+	for (int i = 0; i < numTracks; i++)
+	{
+		D3DXTRACK_DESC desc;
+		ID3DXAnimationSet* anim = NULL;
+		m_animController->GetTrackDesc(i, &desc);
+		m_animController->GetTrackAnimationSet(i, &anim);
+
+		string animName = anim->GetName();
+		while (animName.size() < 10)
+			animName.push_back(' ');
+
+		string s = string("Track #") + global::IntToString(i + 1) + animName;
+		s += string("Weight = ") + global::IntToString((int)(desc.Weight * 100)) + "%";
+		s += string(", Position = ") + global::IntToString((int)(desc.Position * 1000)) + " ms";	//单位是秒？
+		s += string(", Speed = ") + global::IntToString((int)(desc.Speed * 100)) + "%";
+
+		RECT r = { 10, 530 + i * 20, 0, 0 };
+		pText->DrawText(NULL, s.c_str(), -1, &r, DT_LEFT | DT_TOP | DT_NOCLIP, 0xAA000000);
+	}
 }
 
 void Application::Quit()
