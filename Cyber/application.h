@@ -1,4 +1,5 @@
 #include <d3dx9.h>
+#include <fstream>
 #include "mesh.h"
 #include "skinnedMesh.h"
 #include "Animation.h"

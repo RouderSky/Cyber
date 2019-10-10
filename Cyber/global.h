@@ -1,8 +1,8 @@
 #ifndef _GLOBAL_
 #define _GLOBAL_
 
+#include <string>
 #include <d3dx9.h>
-#include <fstream>
 
 using namespace std;
 
