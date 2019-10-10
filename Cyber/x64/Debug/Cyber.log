@@ -1,5 +1,2 @@
-﻿  application.cpp
-d:\c++\cyber\cyber\application.cpp(425): warning C4101: “keys”: 未引用的局部变量
-  main.cpp
-  正在生成代码...
+﻿  global.cpp
   Cyber.vcxproj -> D:\C++\Cyber\x64\Debug\Cyber.exe

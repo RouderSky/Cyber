@@ -71,6 +71,8 @@ HRESULT SkinnedMesh::Load(const char fileName[], const char lightingEffectFileNa
 	D3DXCreateSphere(pD3DDevice, 0.02, 10, 20, &m_pSphereMesh, NULL);
 
 	D3DXMatrixIdentity(&world);
+
+	return D3D_OK;
 }
 
 //为啥不在CreateMeshContainer中实现以下逻辑，是因为一个Container中的所有Bone不一定都创建好了嘛？

@@ -54,16 +54,19 @@ void global::ShowAllTrackStatus(ID3DXAnimationController* pAnimController)
 		pAnimController->GetTrackDesc(i, &desc);
 		pAnimController->GetTrackAnimationSet(i, &anim);
 
-		string animName = anim->GetName();
-		while (animName.size() < 10)
-			animName.push_back(' ');
+		if (anim != NULL)
+		{
+			string animName = anim->GetName();
+			while (animName.size() < 10)
+				animName.push_back(' ');
 
-		string s = string("Track #") + global::IntToString(i + 1) + animName;
-		s += string("Weight = ") + global::IntToString((int)(desc.Weight * 100)) + "%";
-		s += string(", Position = ") + global::IntToString((int)(desc.Position * 1000)) + " ms";	//单位是秒？
-		s += string(", Speed = ") + global::IntToString((int)(desc.Speed * 100)) + "%";
+			string s = string("Track #") + global::IntToString(i + 1) + animName;
+			s += string("Weight = ") + global::IntToString((int)(desc.Weight * 100)) + "%";
+			s += string(", Position = ") + global::IntToString((int)(desc.Position * 1000)) + " ms";	//单位是秒？
+			s += string(", Speed = ") + global::IntToString((int)(desc.Speed * 100)) + "%";
 
-		RECT r = { 10, 530 + i * 20, 0, 0 };
-		pText->DrawText(NULL, s.c_str(), -1, &r, DT_LEFT | DT_TOP | DT_NOCLIP, 0xAA000000);
+			RECT r = { 10, 530 + i * 20, 0, 0 };
+			pText->DrawText(NULL, s.c_str(), -1, &r, DT_LEFT | DT_TOP | DT_NOCLIP, 0xAA000000);
+		}
 	}
 }

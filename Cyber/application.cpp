@@ -154,7 +154,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	hRes = m_drone.Load(meshFileName, "Lighting.hlsl", "Shadow.hlsl");
 	delete[]meshFileName;
 	if (FAILED(hRes))
-		return E_FAIL;		//todo：有时会失败
+		return E_FAIL;
 
 	////骨骼动画
 	srand(GetTickCount());
@@ -168,11 +168,9 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	//RandomPlay4AnimFor4Model();
 
 	m_animController = m_drone.GetControllerCopy();
-	RandomBlend2Animation();
+	//RandomBlend2Animation();
 
-
-
-
+	TestCallback();
 
 	m_animation.init();
 
@@ -301,6 +299,9 @@ void Application::Update(float deltaTime)
 			//RandomPlay4AnimFor4Model();
 			RandomBlend2Animation();
 		}
+
+		if (m_show > 0.0f)
+			m_show -= deltaTime;
 	}
 	catch (...)		//这是什么语法？
 	{
@@ -349,17 +350,24 @@ void Application::Render(float deltaTime)
 				}
 				*/
 
-				m_animController->AdvanceTime(deltaTime * 0.5, NULL);
+				m_animController->AdvanceTime(deltaTime * 0.5, &callbackHandler);
 				m_drone.UpdateMatrixOfBone2Model();
 				m_drone.HardRender(&view, &proj, &lightPos, &lightColor, &shadow);
 				global::ShowAllTrackStatus(m_animController);
+
+				if (m_show>0.0f)
+				{
+					RECT rc = { 0,0,WINDOW_WIDTH,WINDOW_HEIGHT };
+					pText->DrawText(NULL, "BANG!", -1, &rc, DT_CENTER | DT_VCENTER | DT_NOCLIP, 0xFF000000);
+					SetRect(&rc, -5, -5, WINDOW_WIDTH, WINDOW_HEIGHT);
+					pText->DrawText(NULL, "BANG!", -1, &rc, DT_CENTER | DT_VCENTER | DT_NOCLIP, 0xFFFFFF00);
+				}
 
 				//m_animation.Draw();
 
 				//UI
 				RECT rc = { 10,10,0,0 };
 				pText->DrawText(NULL, "Press Return to do something", -1, &rc, DT_LEFT | DT_TOP | DT_NOCLIP, 0x66000000);
-
 				pD3DDevice->EndScene();
 				pD3DDevice->Present(NULL, NULL, NULL, NULL);
 			}
@@ -422,7 +430,25 @@ void Application::TestCallback()
 	//创建callback
 	const UINT numCallbacks = 1;
 	D3DXKEY_CALLBACK keys[numCallbacks];
+	double ticksPerSecond = animSet->GetSourceTicksPerSecond();
+	keys[0].Time = float(animSet->GetPeriod() / 2.0f*ticksPerSecond);
+	keys[0].pCallbackData = (void*)&m_drone;
+	ID3DXCompressedAnimationSet* compressedAnimSet = NULL;
+	//添加callback一定要压缩动画
+	D3DXCreateCompressedAnimationSet(
+		animSet->GetName(),
+		animSet->GetSourceTicksPerSecond(),
+		animSet->GetPlaybackType(),
+		compressedData,
+		numCallbacks,
+		keys,
+		&compressedAnimSet);
+	compressedData->Release();
 
+	m_animController->UnregisterAnimationSet(animSet);			//可不可以早点删除？
+	m_animController->RegisterAnimationSet(compressedAnimSet);
+	m_animController->SetTrackAnimationSet(0, compressedAnimSet);
+	compressedAnimSet->Release();
 }
 
 void Application::Quit()
