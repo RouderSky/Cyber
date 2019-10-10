@@ -19,6 +19,7 @@ private:
 	SkinnedMesh m_drone;
 	vector<ID3DXAnimationController*> m_animControllers;
 	vector<D3DXMATRIX> m_positions;
+	ID3DXAnimationController *m_animController;
 
 	Animation m_animation;
 	float m_angle;
@@ -27,7 +28,9 @@ private:
 	void OnDeviceLost();
 	void OnDeviceGained();
 	void Render(float deltaTime);
-	void RandomizeAnimations();
+	void RandomizeAnimations1();
+	void RandomizeAnimations2();
+	void TrackStatus();
 	void Cleanup();
 	void Quit();
 };

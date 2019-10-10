@@ -143,6 +143,7 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 		return E_FAIL;
 
 	////骨骼动画
+	srand(GetTickCount());
 	for (int i = 0; i < 4; i++)
 	{
 		D3DXMATRIX mPos;
@@ -150,8 +151,9 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 		m_positions.push_back(mPos);
 		m_animControllers.push_back(m_drone.GetControllerCopy());
 	}
-	srand(GetTickCount());
-	RandomizeAnimations();
+	RandomizeAnimations1();
+	m_animController = m_drone.GetControllerCopy();
+	RandomizeAnimations2();
 
 	m_animation.init();
 
@@ -275,7 +277,8 @@ void Application::Update(float deltaTime)
 		if (global::KeyDown(VK_RETURN))
 		{
 			Sleep(300);
-			RandomizeAnimations();
+			RandomizeAnimations1();
+			RandomizeAnimations2();
 		}
 	}
 	catch (...)		//这是什么语法？
@@ -311,6 +314,8 @@ void Application::Render(float deltaTime)
 			if (SUCCEEDED(pD3DDevice->BeginScene()))
 			{
 				//m_soldier.Render(&view, &proj, &lightPos, &lightColor, &shadow);
+
+				/*
 				int numController = (int)m_animControllers.size();
 				for (int i = 0; i < numController; i++)
 				{
@@ -321,11 +326,17 @@ void Application::Render(float deltaTime)
 					m_drone.HardRender(&view, &proj, &lightPos, &lightColor, &shadow);
 					//m_drone.RenderSkeleton(&view, &proj);
 				}
+				*/
+
+				m_animController->AdvanceTime(deltaTime * 0.5, NULL);
+				m_drone.UpdateMatrixOfBone2Model();
+				m_drone.HardRender(&view, &proj, &lightPos, &lightColor, &shadow);
+
 				//m_animation.Draw();
 
 				//UI
 				RECT rc = { 10,10,0,0 };
-				pText->DrawText(NULL, "Press Return to toggle animation:", -1, &rc, DT_LEFT | DT_TOP | DT_NOCLIP, 0x66000000);
+				pText->DrawText(NULL, "Press Return to do something", -1, &rc, DT_LEFT | DT_TOP | DT_NOCLIP, 0x66000000);
 
 				pD3DDevice->EndScene();
 				pD3DDevice->Present(NULL, NULL, NULL, NULL);
@@ -338,7 +349,7 @@ void Application::Render(float deltaTime)
 	}
 }
 
-void Application::RandomizeAnimations()
+void Application::RandomizeAnimations1()
 {
 	int numAnimControllers = (int)m_animControllers.size();
 	for (int i = 0; i < numAnimControllers; i++)
@@ -349,6 +360,35 @@ void Application::RandomizeAnimations()
 		m_animControllers[i]->SetTrackAnimationSet(0, anim);
 		anim->Release();
 	}
+}
+
+void Application::RandomizeAnimations2()
+{
+	m_animController->ResetTime();
+
+	//随机抽取两个动画，并放到两个轨道上
+	int numAnimations = m_animController->GetMaxNumAnimationSets();
+	ID3DXAnimationSet* anim1 = NULL;
+	ID3DXAnimationSet* anim2 = NULL;
+	m_animController->GetAnimationSet(rand() % numAnimations, &anim1);
+	m_animController->GetAnimationSet(rand() % numAnimations, &anim2);
+	m_animController->SetTrackAnimationSet(0, anim1);
+	m_animController->SetTrackAnimationSet(1, anim2);
+
+	//混合
+	float w = (rand() % 1000) / 1000.0f;
+	m_animController->SetTrackWeight(0, w);
+	m_animController->SetTrackWeight(1, 1.0f - w);		//todo：试试看是不是总和不为1也可以
+	m_animController->SetTrackSpeed(0, (rand() % 1000) / 500.0f);
+	m_animController->SetTrackSpeed(1, (rand() % 1000) / 500.0f);
+	m_animController->SetTrackPriority(0, D3DXPRIORITY_HIGH);		//todo：改掉优先级试试
+	m_animController->SetTrackPriority(1, D3DXPRIORITY_HIGH);
+	m_animController->SetTrackEnable(0, true);		//todo：去掉试试，应该是默认开启的
+	m_animController->SetTrackEnable(1, true);
+}
+
+void Application::TrackStatus()
+{
 }
 
 void Application::Quit()
