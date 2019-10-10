@@ -336,7 +336,7 @@ void Application::Render(float deltaTime)
 				m_animController->AdvanceTime(deltaTime * 0.5, NULL);
 				m_drone.UpdateMatrixOfBone2Model();
 				m_drone.HardRender(&view, &proj, &lightPos, &lightColor, &shadow);
-				TrackStatus();
+				global::ShowAllTrackStatus(m_animController);
 
 				//m_animation.Draw();
 
@@ -391,36 +391,6 @@ void Application::RandomizeAnimations2()
 	m_animController->SetTrackPriority(1, D3DXPRIORITY_HIGH);
 	m_animController->SetTrackEnable(0, true);		//todo：去掉试试，应该是默认开启的
 	m_animController->SetTrackEnable(1, true);
-}
-
-void Application::TrackStatus()
-{
-	pLine->SetWidth(100.0f);
-	pLine->Begin();
-	D3DXVECTOR2 p[] = { D3DXVECTOR2(0, 550), D3DXVECTOR2(800, 550) };
-	pLine->Draw(p, 2, 0x88FFFFFF);
-	pLine->End();
-
-	int numTracks = m_animController->GetMaxNumTracks();
-	for (int i = 0; i < numTracks; i++)
-	{
-		D3DXTRACK_DESC desc;
-		ID3DXAnimationSet* anim = NULL;
-		m_animController->GetTrackDesc(i, &desc);
-		m_animController->GetTrackAnimationSet(i, &anim);
-
-		string animName = anim->GetName();
-		while (animName.size() < 10)
-			animName.push_back(' ');
-
-		string s = string("Track #") + global::IntToString(i + 1) + animName;
-		s += string("Weight = ") + global::IntToString((int)(desc.Weight * 100)) + "%";
-		s += string(", Position = ") + global::IntToString((int)(desc.Position * 1000)) + " ms";	//单位是秒？
-		s += string(", Speed = ") + global::IntToString((int)(desc.Speed * 100)) + "%";
-
-		RECT r = { 10, 530 + i * 20, 0, 0 };
-		pText->DrawText(NULL, s.c_str(), -1, &r, DT_LEFT | DT_TOP | DT_NOCLIP, 0xAA000000);
-	}
 }
 
 void Application::Quit()

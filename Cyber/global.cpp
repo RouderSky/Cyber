@@ -37,3 +37,33 @@ string global::IntToString(int i)
 	_itoa(i, num, 10);
 	return num;
 }
+
+void global::ShowAllTrackStatus(ID3DXAnimationController* pAnimController)
+{
+	pLine->SetWidth(100.0f);
+	pLine->Begin();
+	D3DXVECTOR2 p[] = { D3DXVECTOR2(0, 550), D3DXVECTOR2(800, 550) };
+	pLine->Draw(p, 2, 0x88FFFFFF);
+	pLine->End();
+
+	int numTracks = pAnimController->GetMaxNumTracks();
+	for (int i = 0; i < numTracks; i++)
+	{
+		D3DXTRACK_DESC desc;
+		ID3DXAnimationSet* anim = NULL;
+		pAnimController->GetTrackDesc(i, &desc);
+		pAnimController->GetTrackAnimationSet(i, &anim);
+
+		string animName = anim->GetName();
+		while (animName.size() < 10)
+			animName.push_back(' ');
+
+		string s = string("Track #") + global::IntToString(i + 1) + animName;
+		s += string("Weight = ") + global::IntToString((int)(desc.Weight * 100)) + "%";
+		s += string(", Position = ") + global::IntToString((int)(desc.Position * 1000)) + " ms";	//µ¥Î»ÊÇÃë£¿
+		s += string(", Speed = ") + global::IntToString((int)(desc.Speed * 100)) + "%";
+
+		RECT r = { 10, 530 + i * 20, 0, 0 };
+		pText->DrawText(NULL, s.c_str(), -1, &r, DT_LEFT | DT_TOP | DT_NOCLIP, 0xAA000000);
+	}
+}

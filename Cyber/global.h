@@ -16,6 +16,8 @@ using namespace std;
 #define ROOT_PATH_TO_MESH_TEXTURES "resources/Mesh/"
 
 extern IDirect3DDevice9 *pD3DDevice;
+extern ID3DXFont *pText;
+extern ID3DXLine *pLine;
 
 namespace global
 {
@@ -32,6 +34,7 @@ namespace global
 	bool KeyUp(int vk_code);
 
 	string IntToString(int i);
+	void ShowAllTrackStatus(ID3DXAnimationController* pAnimController);
 };
 
 #endif

@@ -30,7 +30,6 @@ private:
 	void Render(float deltaTime);
 	void RandomizeAnimations1();
 	void RandomizeAnimations2();
-	void TrackStatus();
 	void Cleanup();
 	void Quit();
 };
