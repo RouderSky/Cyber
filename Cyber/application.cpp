@@ -359,7 +359,7 @@ void Application::Render(float deltaTime)
 				{
 					RECT rc = { 0,0,WINDOW_WIDTH,WINDOW_HEIGHT };
 					pText->DrawText(NULL, "BANG!", -1, &rc, DT_CENTER | DT_VCENTER | DT_NOCLIP, 0xFF000000);
-					SetRect(&rc, -5, -5, WINDOW_WIDTH, WINDOW_HEIGHT);
+					SetRect(&rc, -5, -5, WINDOW_WIDTH-5, WINDOW_HEIGHT-5);
 					pText->DrawText(NULL, "BANG!", -1, &rc, DT_CENTER | DT_VCENTER | DT_NOCLIP, 0xFFFFFF00);
 				}
 
