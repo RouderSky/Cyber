@@ -4,8 +4,19 @@ IDirect3DDevice9 *pD3DDevice = NULL;
 ID3DXSprite *pSprite = NULL;
 ID3DXFont *pText = NULL;
 ID3DXLine *pLine = NULL;
-//////////////////////////////////////////
 ofstream streanOfDebug("debug.txt");
+
+float m_show = 0.0f;
+class CallbackHandler : public ID3DXAnimationCallbackHandler
+{
+public:
+	HRESULT CALLBACK HandleCallback(THIS_ UINT Track, LPVOID pCallbackData)
+	{
+		m_show = 0.25f;
+		return D3D_OK;
+	}
+};
+CallbackHandler callbackHandler;
 
 Application::Application()
 {
@@ -143,20 +154,25 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 	hRes = m_drone.Load(meshFileName, "Lighting.hlsl", "Shadow.hlsl");
 	delete[]meshFileName;
 	if (FAILED(hRes))
-		return E_FAIL;
+		return E_FAIL;		//todo：有时会失败
 
 	////骨骼动画
 	srand(GetTickCount());
-	for (int i = 0; i < 4; i++)
-	{
-		D3DXMATRIX mPos;
-		D3DXMatrixTranslation(&mPos, -1.5f + i * 1.0f, 0.0f, 0.0f);
-		m_positions.push_back(mPos);
-		m_animControllers.push_back(m_drone.GetControllerCopy());
-	}
-	RandomizeAnimations1();
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	D3DXMATRIX mPos;
+	//	D3DXMatrixTranslation(&mPos, -1.5f + i * 1.0f, 0.0f, 0.0f);
+	//	m_positions.push_back(mPos);
+	//	m_animControllers.push_back(m_drone.GetControllerCopy());
+	//}
+	//RandomPlay4AnimFor4Model();
+
 	m_animController = m_drone.GetControllerCopy();
-	RandomizeAnimations2();
+	RandomBlend2Animation();
+
+
+
+
 
 	m_animation.init();
 
@@ -282,8 +298,8 @@ void Application::Update(float deltaTime)
 		if (global::KeyDown(VK_RETURN))
 		{
 			Sleep(300);
-			RandomizeAnimations1();
-			RandomizeAnimations2();
+			//RandomPlay4AnimFor4Model();
+			RandomBlend2Animation();
 		}
 	}
 	catch (...)		//这是什么语法？
@@ -355,7 +371,7 @@ void Application::Render(float deltaTime)
 	}
 }
 
-void Application::RandomizeAnimations1()
+void Application::RandomPlay4AnimFor4Model()
 {
 	int numAnimControllers = (int)m_animControllers.size();
 	for (int i = 0; i < numAnimControllers; i++)
@@ -368,7 +384,7 @@ void Application::RandomizeAnimations1()
 	}
 }
 
-void Application::RandomizeAnimations2()
+void Application::RandomBlend2Animation()
 {
 	m_animController->ResetTime();
 
@@ -391,6 +407,22 @@ void Application::RandomizeAnimations2()
 	m_animController->SetTrackPriority(1, D3DXPRIORITY_HIGH);
 	m_animController->SetTrackEnable(0, true);		//todo：去掉试试，应该是默认开启的
 	m_animController->SetTrackEnable(1, true);
+}
+
+void Application::TestCallback()
+{
+	//随便拿一个动画
+	ID3DXKeyframedAnimationSet* animSet = NULL;
+	m_animController->GetAnimationSet(1, (ID3DXAnimationSet**)&animSet);
+
+	//压缩动画
+	ID3DXBuffer* compressedData = NULL;
+	animSet->Compress(D3DXCOMPRESS_DEFAULT, 0.5f, NULL, &compressedData);
+
+	//创建callback
+	const UINT numCallbacks = 1;
+	D3DXKEY_CALLBACK keys[numCallbacks];
+
 }
 
 void Application::Quit()

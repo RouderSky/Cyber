@@ -29,8 +29,9 @@ private:
 	void OnDeviceLost();
 	void OnDeviceGained();
 	void Render(float deltaTime);
-	void RandomizeAnimations1();
-	void RandomizeAnimations2();
+	void RandomPlay4AnimFor4Model();
+	void RandomBlend2Animation();
+	void TestCallback();
 	void Cleanup();
 	void Quit();
 };

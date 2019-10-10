@@ -24,6 +24,7 @@ public:
 	//¸üÐÂPose
 	void UpdateMatrixOfBone2Model();
 	ID3DXAnimationController* GetControllerCopy();
+	D3DXFRAME* GetBone(string name);
 
 	void OnLostDevice();
 	void OnResetDevice();

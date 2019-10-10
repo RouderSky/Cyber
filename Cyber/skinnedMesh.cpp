@@ -387,6 +387,11 @@ void SkinnedMesh::RenderSkeleton(D3DXMATRIX *view, D3DXMATRIX *proj)
 	 return newAnimController;
  }
 
+ D3DXFRAME * SkinnedMesh::GetBone(string name)
+ {
+	 return D3DXFrameFind(m_pRootBone, name.c_str());
+ }
+
  void SkinnedMesh::OnLostDevice()
  {
 	 pLightingEffect->OnLostDevice();
