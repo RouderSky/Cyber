@@ -41,10 +41,20 @@ VS_OUTPUT vs_NormalLighting(VS_INPUT IN)
 	return OUT;
 }
 
-float4 ps_lighting(VS_OUTPUT IN) : COLOR0
+float4 ps_lightingWithTex(VS_OUTPUT IN) : COLOR0
 {
 	float4 diffuseColor = tex2D(DiffuseSampler, IN.tex0);
 	return IN.shade * diffuseColor;
+}
+
+technique NormalLightingWithTex
+{
+	pass P0
+	{
+		Lighting = false;
+		VertexShader = compile vs_2_0 vs_NormalLighting();
+		PixelShader = compile ps_2_0 ps_lightingWithTex();
+	}
 }
 
 technique NormalLighting
@@ -53,7 +63,6 @@ technique NormalLighting
 	{
 		Lighting = false;
 		VertexShader = compile vs_2_0 vs_NormalLighting();
-		PixelShader = compile ps_2_0 ps_lighting();
 	}
 }
 
@@ -119,6 +128,6 @@ technique SkinningAndLighting
 	{
 		Lighting = false;
 		VertexShader = compile vs_2_0 vs_SkinningAndLighting();
-		PixelShader = compile ps_2_0 ps_lighting();
+		PixelShader = compile ps_2_0 ps_lightingWithTex();
 	}
 }

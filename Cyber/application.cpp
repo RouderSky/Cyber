@@ -298,7 +298,7 @@ void Application::Update(float deltaTime)
 		}
 
 		//×Ô¶¨ÒåÂß¼­
-		m_angle += deltaTime;
+		//m_angle += deltaTime;
 		m_animation.Update(deltaTime);
 
 		if (global::KeyDown(VK_RETURN))

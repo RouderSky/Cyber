@@ -104,7 +104,7 @@ void Mesh::Render(D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3D
 	pLightingEffect->SetVector("lightPos", lightPos);
 	pLightingEffect->SetVector("lightColor", lightColor);
 
-	D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
+	D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLightingWithTex");
 	pLightingEffect->SetTechnique(hTech);
 	UINT passCont;
 	pLightingEffect->Begin(&passCont, NULL);

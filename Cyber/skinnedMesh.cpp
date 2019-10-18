@@ -150,7 +150,7 @@ void SkinnedMesh::SoftRender(D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *li
 	pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
 	pLightingEffect->SetVector("lightPos", lightPos);
 	pLightingEffect->SetVector("lightColor", lightColor);
-	D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
+	D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLightingWithTex");
 	pLightingEffect->SetTechnique(hTech);
 	UINT passCont;
 	pLightingEffect->Begin(&passCont, NULL);
@@ -269,7 +269,7 @@ void SkinnedMesh::RealHardRender(Bone *curBone)
 			//设置好Shader
 			pLightingEffect->SetMatrix("matW", &(curBone->matrixOfbone2Model * world));		//没有蒙皮信息的网格的顶点不是保存在模型空间中的
 
-			D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
+			D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLightingWithTex");
 			pLightingEffect->SetTechnique(hTech);
 
 			//绘制所有子网格

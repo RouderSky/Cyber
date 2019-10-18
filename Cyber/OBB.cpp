@@ -80,11 +80,12 @@ void OBB::Render(D3DXMATRIX *view, D3DXMATRIX *proj, D3DXVECTOR4 *lightPos, D3DX
 		D3DXMATRIX matSelfPos, matSelfRot, matSelf2World;
 		D3DXMatrixTranslation(&matSelfPos, m_pos.x, m_pos.y, m_pos.z);
 		D3DXMatrixRotationQuaternion(&matSelfRot, &m_rot);
-		D3DXMatrixMultiply(&matSelf2World, &matSelfPos, &matSelfPos);
+		D3DXMatrixMultiply(&matSelf2World, &matSelfRot, &matSelfPos);
 
 		pLightingEffect->SetMatrix("matW", &matSelf2World);
 		pLightingEffect->SetMatrix("matVP", &((*view) * (*proj)));
 		pLightingEffect->SetVector("lightPos", lightPos);
+		pLightingEffect->SetVector("lightColor", lightColor);
 		D3DXHANDLE hTech = pLightingEffect->GetTechniqueByName("NormalLighting");
 		pLightingEffect->SetTechnique(hTech);
 		UINT passCount = 0;
