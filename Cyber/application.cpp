@@ -6,13 +6,13 @@ ID3DXFont *pText = NULL;
 ID3DXLine *pLine = NULL;
 ofstream streanOfDebug("debug.txt");
 
-float m_show = 0.0f;
+float m_showTimeOfBandTxt = 0.0f;
 class CallbackHandler : public ID3DXAnimationCallbackHandler
 {
 public:
 	HRESULT CALLBACK HandleCallback(THIS_ UINT Track, LPVOID pCallbackData)
 	{
-		m_show = 0.25f;
+		m_showTimeOfBandTxt = 0.25f;
 		return D3D_OK;
 	}
 };
@@ -174,6 +174,14 @@ HRESULT Application::Init(HINSTANCE hAppIns, bool windowed)
 
 	m_animation.init();
 
+	m_pOBB1 = new OBB(D3DXVECTOR3(2.0f, 1.0f, 0.3f));
+	m_pOBB1->m_pos.x -= 1.5f;
+	m_pOBB2 = new OBB(D3DXVECTOR3(0.3f, 1.0f, 2.0f));
+	m_pOBB2->m_pos.x += 1.5f;
+	D3DXQuaternionIdentity(&m_rot1);
+	D3DXQuaternionIdentity(&m_rot2);
+	m_cdOfPressSpace = 0.0f;
+
 	//初始化其余变量
 	m_deviceLost = false;
 
@@ -300,8 +308,25 @@ void Application::Update(float deltaTime)
 			RandomBlend2Animation();
 		}
 
-		if (m_show > 0.0f)
-			m_show -= deltaTime;
+		if (m_showTimeOfBandTxt > 0.0f)
+			m_showTimeOfBandTxt -= deltaTime;
+
+		//OBB旋转
+		if (global::KeyDown(VK_SPACE) && m_cdOfPressSpace <= 0.0f)
+		{
+			m_rot1 = D3DXQUATERNION(rand() % 1000 - 500.0f, rand() % 1000 - 500.0f, rand() % 1000 - 500.0f, rand() % 1000 - 500.0f);
+			m_rot2 = D3DXQUATERNION(rand() % 1000 - 500.0f, rand() % 1000 - 500.0f, rand() % 1000 - 500.0f, rand() % 1000 - 500.0f);
+			D3DXQuaternionNormalize(&m_rot1, &m_rot1);
+			D3DXQuaternionNormalize(&m_rot2, &m_rot2);
+			m_cdOfPressSpace = 0.3f;
+		}
+		m_cdOfPressSpace = max(m_cdOfPressSpace - deltaTime, 0.0f);
+
+		//这样做可以实现从m_rot旋转到m_rot1的效果
+		m_pOBB1->m_rot += m_rot1 * deltaTime;
+		m_pOBB2->m_rot += m_rot2 * deltaTime;
+		D3DXQuaternionNormalize(&m_pOBB1->m_rot, &m_pOBB1->m_rot);
+		D3DXQuaternionNormalize(&m_pOBB2->m_rot, &m_pOBB2->m_rot);
 	}
 	catch (...)		//这是什么语法？
 	{
@@ -325,7 +350,7 @@ void Application::Render(float deltaTime)
 			D3DXMATRIX view;
 			D3DXVECTOR3 targetPos(0.0f, 1.0f, 0.0f);
 			D3DXVECTOR3 eyeDir(cos(m_angle), 1.0f, sin(m_angle));
-			D3DXVECTOR3 eyePos = eyeDir * 2.0f;
+			D3DXVECTOR3 eyePos = eyeDir * 7.0f;
 			D3DXMatrixLookAtLH(&view, &eyePos, &targetPos, &D3DXVECTOR3(0.0f, 1.0f, 0.0f));
 			
 			D3DXMATRIX proj;
@@ -350,26 +375,33 @@ void Application::Render(float deltaTime)
 				}
 				*/
 
+				/*
 				m_animController->AdvanceTime(deltaTime * 0.5, &callbackHandler);
 				m_drone.UpdateMatrixOfBone2Model();
 				m_drone.HardRender(&view, &proj, &lightPos, &lightColor, &shadow);
 				global::ShowAllTrackStatus(m_animController);
 
-				if (m_show>0.0f)
+				if (m_showTimeOfBandTxt>0.0f)
 				{
 					RECT rc = { 0,0,WINDOW_WIDTH,WINDOW_HEIGHT };
 					pText->DrawText(NULL, "BANG!", -1, &rc, DT_CENTER | DT_VCENTER | DT_NOCLIP, 0xFF000000);
 					SetRect(&rc, -5, -5, WINDOW_WIDTH-5, WINDOW_HEIGHT-5);
 					pText->DrawText(NULL, "BANG!", -1, &rc, DT_CENTER | DT_VCENTER | DT_NOCLIP, 0xFFFFFF00);
 				}
+				*/
 
 				//m_animation.Draw();
 
-				//UI
-				RECT rc = { 10,10,0,0 };
-				pText->DrawText(NULL, "Press Return to do something", -1, &rc, DT_LEFT | DT_TOP | DT_NOCLIP, 0x66000000);
+				m_pOBB1->Render(&view, &proj, &lightPos, &lightColor, &shadow);
+				m_pOBB2->Render(&view, &proj, &lightPos, &lightColor, &shadow);
+				if (m_pOBB1->Intersect(*m_pOBB2))
+				{
+					RECT rc = { 10, 10, 0, 0 };
+					pText->DrawText(NULL, "Intersecting!", -1, &rc, DT_LEFT | DT_TOP | DT_NOCLIP, 0xff000000);
+				}
+
 				pD3DDevice->EndScene();
-				pD3DDevice->Present(NULL, NULL, NULL, NULL);
+				pD3DDevice->Present(0, 0, 0, 0);
 			}
 		}
 		catch (...)

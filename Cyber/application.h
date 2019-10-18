@@ -3,6 +3,7 @@
 #include "mesh.h"
 #include "skinnedMesh.h"
 #include "Animation.h"
+#include "OBB.h"
 
 class Application
 {
@@ -24,6 +25,11 @@ private:
 
 	Animation m_animation;
 	float m_angle;
+
+	OBB* m_pOBB1;
+	OBB* m_pOBB2;
+	D3DXQUATERNION m_rot1, m_rot2;
+	float m_cdOfPressSpace;
 
 	void Update(float deltaTime);
 	void OnDeviceLost();
